@@ -511,13 +511,10 @@ function AIPage({ user, onBack }) {
         lines.push(`👥 মোট কাস্টমার: ${customers.length}জন`);
         lines.push(`⭐ VIP: ${vip.length}জন`);
         lines.push(`⚠️ বাকি: ${withDue.length}জনের, মোট ৳${totalDue.toLocaleString()}`);
-        if (top.length) { lines.push(`
-🏆 সেরা কাস্টমার:`); top.forEach(c => lines.push(`  ${c.name}: ৳${(+c.total_purchase||0).toLocaleString()}`)); }
-        if (withDue.length) { lines.push(`
-💰 বাকি কালেকশন:`); withDue.slice(0,3).forEach(c => lines.push(`  ${c.name}: ৳${(+c.due_amount).toLocaleString()}`)); }
+        if (top.length) { lines.push(""); lines.push("🏆 সেরা কাস্টমার:"); top.forEach(c => lines.push(`  ${c.name}: ৳${(+c.total_purchase||0).toLocaleString()}`)); }
+        if (withDue.length) { lines.push(""); lines.push("💰 বাকি কালেকশন:"); withDue.slice(0,3).forEach(c => lines.push(`  ${c.name}: ৳${(+c.due_amount).toLocaleString()}`)); }
       }
-      setResult(lines.join("
-")); setLoading(false);
+      setResult(lines.join("\n")); setLoading(false);
     }, 1200);
   };
 
