@@ -1,9 +1,11 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import AppShell from '@/components/layout/AppShell';
-import { useAuthStore, useNotifStore } from '@/lib/store';
-import { formatCurrency, timeAgo } from '@/lib/utils';
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+export default function Page() {
+  const router = useRouter();
+  useEffect(() => { router.replace("/"); }, [router]);
+  return null;
+}
 
 export default function ProductDetailPage() {
   const { id } = useParams();
