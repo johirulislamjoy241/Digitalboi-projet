@@ -1,10 +1,11 @@
-'use client';
-import { useState } from 'react';
-import AppShell from '@/components/layout/AppShell';
-import ImageUpload from '@/components/ui/ImageUpload';
-import { useAuthStore, useNotifStore } from '@/lib/store';
-import { generateCode } from '@/lib/utils';
-
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+export default function Page() {
+  const router = useRouter();
+  useEffect(() => { router.replace("/"); }, [router]);
+  return null;
+}
 const PLATFORMS = ['Facebook Shop', 'Daraz', 'Shajgoj', 'Chaldal', 'Shohoz', 'নিজস্ব ওয়েবসাইট', 'Instagram', 'অন্যান্য'];
 
 export default function OnlineShopPage() {
