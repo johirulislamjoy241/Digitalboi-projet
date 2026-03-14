@@ -1,8 +1,11 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useAuthStore } from '@/lib/store';
-import api from '@/lib/api';
-import Link from 'next/link';
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+export default function Page() {
+  const router = useRouter();
+  useEffect(() => { router.replace("/"); }, [router]);
+  return null;
+}
 
 export default function ReceiptPage({ params }) {
   const { shop } = useAuthStore();
