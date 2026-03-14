@@ -1,7 +1,11 @@
-'use client';
-import { useState, useEffect } from 'react';
-import AppShell from '@/components/layout/AppShell';
-import { useAuthStore, useNotifStore } from '@/lib/store';
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+export default function Page() {
+  const router = useRouter();
+  useEffect(() => { router.replace("/"); }, [router]);
+  return null;
+}
 
 const ICONS = ['📦','🍚','🛒','🧴','🫙','🥛','🥩','🍞','🧹','💊','📱','👕','🏠','⚡','🚗','🎮','📚','🔧','💐','🍎'];
 const COLORS = ['#0F4C81','#0BAA69','#E63946','#F4A261','#8B5CF6','#4361EE','#F0A500','#06B6D4','#EC4899','#84CC16'];
