@@ -1,8 +1,11 @@
-'use client';
-import { useState, useEffect, useRef } from 'react';
-import { useToastStore } from '@/lib/store';
-import AppShell from '@/components/layout/AppShell';
-import api from '@/lib/api';
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+export default function Page() {
+  const router = useRouter();
+  useEffect(() => { router.replace("/"); }, [router]);
+  return null;
+}
 
 const INP = { width:'100%', padding:'11px 12px', border:'2px solid #E8EDF5', borderRadius:'10px', fontSize:'14px', outline:'none', boxSizing:'border-box', fontFamily:"'Hind Siliguri',sans-serif", background:'white' };
 const LBL = { fontSize:'12px', fontWeight:'600', color:'#5E6E8A', display:'block', marginBottom:'5px' };
