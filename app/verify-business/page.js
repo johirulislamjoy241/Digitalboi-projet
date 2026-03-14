@@ -1,8 +1,11 @@
-'use client';
-import { useState, useEffect } from 'react';
-import AppShell from '@/components/layout/AppShell';
-import { useAuthStore, useNotifStore } from '@/lib/store';
-import { generateCode } from '@/lib/utils';
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+export default function Page() {
+  const router = useRouter();
+  useEffect(() => { router.replace("/"); }, [router]);
+  return null;
+}
 
 const PLATFORMS = ['Facebook Shop','Daraz','Shajgoj','Chaldal','Shohoz','Instagram','নিজস্ব ওয়েবসাইট','অন্যান্য'];
 
