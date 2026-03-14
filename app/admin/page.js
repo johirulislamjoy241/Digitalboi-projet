@@ -1,8 +1,11 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useAuthStore } from '@/lib/store';
-import AppShell from '@/components/layout/AppShell';
-import api from '@/lib/api';
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+export default function Page() {
+  const router = useRouter();
+  useEffect(() => { router.replace("/"); }, [router]);
+  return null;
+}
 
 const tabs = [
   { k: 'overview', label: '📊 ওভারভিউ' },
