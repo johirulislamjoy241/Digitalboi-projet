@@ -1,181 +1,193 @@
 "use client";
 import { useState, useEffect } from "react";
 import { T } from "@/lib/design";
-import { Card, Badge, Btn, Spinner, EmptyState } from "@/lib/ui";
+import { Card, Badge, Btn, Spinner } from "@/lib/ui";
 import { SvgIcon } from "@/lib/icons";
-import { taka, fmtDate } from "@/lib/helpers";
+import { taka } from "@/lib/helpers";
 
 function TopBar({ title, onBack }) {
   return (
     <div style={{ background:T.surface,padding:"14px 16px",display:"flex",alignItems:"center",gap:12,borderBottom:`1px solid ${T.border}`,position:"sticky",top:0,zIndex:50 }}>
-      {onBack && <button onClick={onBack} style={{ background:`${T.brand}12`,border:"none",borderRadius:10,padding:"8px",cursor:"pointer",color:T.brand,display:"flex" }}><SvgIcon icon="back" size={18}/></button>}
+      {onBack && <button onClick={onBack} style={{ background:`${T.brand}12`,border:"none",borderRadius:10,padding:8,cursor:"pointer",color:T.brand,display:"flex" }}><SvgIcon icon="back" size={18}/></button>}
       <h1 style={{ margin:0,fontSize:17,fontWeight:800,color:T.text }}>{title}</h1>
     </div>
   );
 }
 
 export default function ReportsPage({ onBack, user }) {
-  const [tab,     setTab]     = useState("summary");
   const [data,    setData]    = useState(null);
-  const [sales,   setSales]   = useState([]);
   const [loading, setLoading] = useState(true);
-  const shopId = user?.shopId;
+  const [period,  setPeriod]  = useState("month"); // today | week | month
 
-  useEffect(() => {
-    if (!shopId) { setLoading(false); return; }
-    Promise.all([
-      fetch(`/api/dashboard?shopId=${shopId}`).then(r=>r.json()),
-      fetch(`/api/sales?shopId=${shopId}&limit=50`).then(r=>r.json()),
-    ]).then(([d, s]) => {
-      if (d.success) setData(d.data);
-      if (s.success) setSales(s.data||[]);
-      setLoading(false);
-    }).catch(()=>setLoading(false));
-  }, [shopId]);
+  const getDateRange = (p) => {
+    const now   = new Date();
+    const today = now.toISOString().slice(0, 10);
+    if (p === "today") return { from: today, to: today };
+    if (p === "week") {
+      const w = new Date(now - 6 * 86400000).toISOString().slice(0, 10);
+      return { from: w, to: today };
+    }
+    const m = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    return { from: m, to: today };
+  };
 
-  const maxS = data?.chartData ? Math.max(...data.chartData.map(d=>d.sales), 1) : 1;
+  const loadReport = async (p = period) => {
+    if (!user?.shopId) { setLoading(false); return; }
+    setLoading(true);
+    try {
+      const { from, to } = getDateRange(p);
+      const token = typeof window !== "undefined" ? localStorage.getItem("digiboi_token") : null;
+      const res = await fetch(`/api/reports?from=${from}&to=${to}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const d = await res.json();
+      setData(d);
+    } catch { setData(null); }
+    setLoading(false);
+  };
 
-  // Group sales by payment method
-  const methodTotals = sales.reduce((acc, s) => {
-    const m = s.payment_method||"নগদ";
-    acc[m] = (acc[m]||0) + (+s.total||0);
-    return acc;
-  }, {});
+  useEffect(() => { loadReport(); }, [user?.shopId, period]);
 
-  const totalSales   = sales.reduce((s,x)=>s+(+x.total||0), 0);
-  const totalPaid    = sales.reduce((s,x)=>s+(+x.paid||0), 0);
-  const totalDueAll  = sales.reduce((s,x)=>s+(+x.due||0), 0);
-
-  const TABS = [
-    { id:"summary", label:"সারাংশ" },
-    { id:"monthly", label:"মাসিক" },
-    { id:"sales",   label:"বিক্রয় তালিকা" },
+  const PERIODS = [
+    { id: "today", label: "আজ" },
+    { id: "week",  label: "৭ দিন" },
+    { id: "month", label: "এই মাস" },
   ];
 
-  return (
-    <div style={{ paddingBottom:80 }}>
-      <TopBar title="📊 রিপোর্ট ও বিশ্লেষণ" onBack={onBack}/>
+  const maxChart = Math.max(...(data?.monthlyChart || []).map(d => d.value), 1);
 
-      {/* Tab bar */}
-      <div style={{ display:"flex",background:T.surface,borderBottom:`1px solid ${T.border}` }}>
-        {TABS.map(t => (
-          <button key={t.id} onClick={()=>setTab(t.id)}
-            style={{ flex:1,padding:"12px 4px",border:"none",background:"none",cursor:"pointer",
-              fontWeight:tab===t.id?800:500,fontSize:13,color:tab===t.id?T.brand:T.textSub,
-              borderBottom:`2px solid ${tab===t.id?T.brand:"transparent"}`,fontFamily:"inherit",transition:"all 0.2s" }}>
-            {t.label}
+  return (
+    <div style={{ paddingBottom: 80 }}>
+      <TopBar title="📊 রিপোর্ট ও বিশ্লেষণ" onBack={onBack} />
+
+      {/* Period Selector */}
+      <div style={{ padding:"12px 16px 0",display:"flex",gap:8 }}>
+        {PERIODS.map(p => (
+          <button key={p.id} onClick={() => { setPeriod(p.id); loadReport(p.id); }}
+            style={{ flex:1,padding:"9px 4px",border:`2px solid ${period===p.id ? T.brand : T.border}`,borderRadius:10,fontSize:13,fontWeight:700,cursor:"pointer",background:period===p.id ? `${T.brand}12` : T.surface,color:period===p.id ? T.brand : T.textMuted,fontFamily:"inherit" }}>
+            {p.label}
           </button>
         ))}
       </div>
 
-      {loading ? <div style={{ padding:40,textAlign:"center" }}><Spinner/></div> : (
+      {loading ? (
+        <div style={{ padding:40,textAlign:"center" }}><Spinner /></div>
+      ) : (
         <div style={{ padding:16 }}>
 
-          {/* ── সারাংশ ── */}
-          {tab==="summary" && (
-            <>
-              <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16 }}>
-                {[
-                  { l:"আজকের বিক্রয়",  v:taka(data?.todayTotal||0),  c:T.brand },
-                  { l:"মাসের বিক্রয়",   v:taka(data?.monthTotal||0),  c:T.success },
-                  { l:"মোট বাকি",       v:taka(data?.totalDue||0),    c:T.danger },
-                  { l:"আজকের অর্ডার",   v:data?.todayOrders||0,        c:T.info },
-                ].map((s,i)=>(
-                  <Card key={i} style={{ textAlign:"center",padding:"16px 10px" }}>
-                    <div style={{ fontSize:18,fontWeight:800,color:s.c }}>{s.v}</div>
-                    <div style={{ fontSize:11,color:T.textMuted,marginTop:4 }}>{s.l}</div>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Payment method breakdown */}
-              <Card style={{ marginBottom:14 }}>
-                <div style={{ fontWeight:800,fontSize:14,marginBottom:12 }}>💳 পেমেন্ট পদ্ধতি</div>
-                {Object.entries(methodTotals).length===0
-                  ? <div style={{ color:T.textMuted,fontSize:13 }}>কোনো বিক্রয় নেই</div>
-                  : Object.entries(methodTotals).map(([m,v],i)=>(
-                    <div key={i} style={{ display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${T.border}`,fontSize:13 }}>
-                      <span style={{ fontWeight:600 }}>{m}</span>
-                      <span style={{ fontWeight:800,color:T.brand }}>{taka(v)}</span>
-                    </div>
-                  ))
-                }
-                <div style={{ display:"flex",justifyContent:"space-between",padding:"10px 0 0",fontSize:14,fontWeight:800 }}>
-                  <span>মোট বিক্রয়</span>
-                  <span style={{ color:T.brand }}>{taka(totalSales)}</span>
-                </div>
-                <div style={{ display:"flex",justifyContent:"space-between",fontSize:13,color:T.success }}>
-                  <span>পরিশোধিত</span><span style={{ fontWeight:700 }}>{taka(totalPaid)}</span>
-                </div>
-                <div style={{ display:"flex",justifyContent:"space-between",fontSize:13,color:T.danger }}>
-                  <span>বাকি</span><span style={{ fontWeight:700 }}>{taka(totalDueAll)}</span>
-                </div>
-              </Card>
-
-              {/* Low stock */}
-              {data?.lowStockItems?.length>0 && (
-                <Card style={{ border:`1.5px solid ${T.warning}40` }}>
-                  <div style={{ fontWeight:800,fontSize:14,color:T.warning,marginBottom:10 }}>⚠️ লো স্টক পণ্য</div>
-                  {data.lowStockItems.map(p=>(
-                    <div key={p.id} style={{ display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:`1px solid ${T.border}`,fontSize:13 }}>
-                      <span>{p.name}</span>
-                      <Badge color="warning">{p.stock} {p.unit}</Badge>
-                    </div>
-                  ))}
-                </Card>
-              )}
-            </>
-          )}
-
-          {/* ── মাসিক বিক্রয় ── */}
-          {tab==="monthly" && (
-            <Card>
-              <div style={{ fontWeight:800,fontSize:14,marginBottom:14 }}>📈 ৬ মাসের বিক্রয়</div>
-              {!data?.chartData?.length
-                ? <EmptyState icon="📊" title="কোনো ডেটা নেই" sub="বিক্রয় শুরু করলে চার্ট দেখাবে"/>
-                : data.chartData.map((d,i)=>(
-                  <div key={i} style={{ marginBottom:14 }}>
-                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4 }}>
-                      <span style={{ fontWeight:700,color:T.text }}>{d.month}</span>
-                      <span style={{ fontWeight:800,color:T.brand }}>{taka(d.sales)}</span>
-                    </div>
-                    <div style={{ height:10,background:`${T.brand}15`,borderRadius:5,overflow:"hidden" }}>
-                      <div style={{ height:"100%",width:`${Math.round((d.sales/maxS)*100)}%`,background:T.brandGrad,borderRadius:5,transition:"width 0.5s" }}/>
-                    </div>
-                    <div style={{ fontSize:10,color:T.success,marginTop:2 }}>আনুমানিক লাভ: {taka(d.profit)}</div>
+          {/* মূল স্ট্যাটস */}
+          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16 }}>
+            {[
+              { l:"মোট বিক্রয়",   v: taka(data?.totalSales   || 0), c: T.brand,   icon:"cart" },
+              { l:"মোট লাভ",      v: taka(data?.totalProfit  || 0), c: T.success, icon:"trending" },
+              { l:"মোট বাকি",     v: taka(data?.totalDue     || 0), c: T.warning, icon:"alert" },
+              { l:"মোট অর্ডার",   v: `${data?.totalOrders   || 0}টি`, c: T.info,  icon:"receipt" },
+            ].map((s, i) => (
+              <Card key={i} style={{ padding:"16px 14px" }}>
+                <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:8 }}>
+                  <div style={{ width:34,height:34,borderRadius:10,background:`${s.c}15`,display:"flex",alignItems:"center",justifyContent:"center" }}>
+                    <SvgIcon icon={s.icon} size={17} color={s.c} />
                   </div>
-                ))
-              }
+                </div>
+                <div style={{ fontSize:20,fontWeight:800,color:s.c }}>{s.v}</div>
+                <div style={{ fontSize:11,color:T.textMuted,marginTop:3 }}>{s.l}</div>
+              </Card>
+            ))}
+          </div>
+
+          {/* বিস্তারিত হিসাব */}
+          <Card style={{ marginBottom:16 }}>
+            <div style={{ fontWeight:800,fontSize:14,marginBottom:12 }}>💰 আর্থিক সারসংক্ষেপ</div>
+            {[
+              { l:"মোট বিক্রয়",     v: taka(data?.totalSales    || 0), c: T.text },
+              { l:"পরিশোধ পেয়েছি",  v: taka(data?.totalPaid     || 0), c: T.success },
+              { l:"বাকি আছে",        v: taka(data?.totalDue      || 0), c: T.warning },
+              { l:"মোট ক্রয় খরচ",   v: taka(data?.totalPurchase || 0), c: T.info },
+              { l:"মোট খরচ",         v: taka(data?.totalExpenses || 0), c: T.danger },
+              { l:"নিট মুনাফা",      v: taka(data?.totalProfit   || 0), c: data?.totalProfit >= 0 ? T.success : T.danger, bold: true },
+            ].map((r, i) => (
+              <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:i < 5 ? `1px solid ${T.border}` : "none" }}>
+                <span style={{ fontSize:13,color:T.textMuted }}>{r.l}</span>
+                <span style={{ fontSize:14,fontWeight:r.bold?800:700,color:r.c }}>{r.v}</span>
+              </div>
+            ))}
+          </Card>
+
+          {/* পেমেন্ট পদ্ধতি */}
+          {data?.paymentMethods && Object.keys(data.paymentMethods).length > 0 && (
+            <Card style={{ marginBottom:16 }}>
+              <div style={{ fontWeight:800,fontSize:14,marginBottom:12 }}>💳 পেমেন্ট পদ্ধতি</div>
+              {Object.entries(data.paymentMethods).map(([method, amount], i) => (
+                <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${T.border}` }}>
+                  <span style={{ fontSize:13,fontWeight:600 }}>{method}</span>
+                  <span style={{ fontSize:13,fontWeight:700,color:T.brand }}>{taka(amount)}</span>
+                </div>
+              ))}
             </Card>
           )}
 
-          {/* ── বিক্রয় তালিকা ── */}
-          {tab==="sales" && (
-            <>
-              <div style={{ fontSize:12,color:T.textMuted,marginBottom:10 }}>সর্বশেষ ৫০টি বিক্রয়</div>
-              {!sales.length
-                ? <EmptyState icon="🧾" title="কোনো বিক্রয় নেই" sub="POS থেকে বিক্রয় শুরু করুন"/>
-                : sales.map(s=>(
-                  <Card key={s.id} style={{ marginBottom:8,padding:"12px 14px" }}>
-                    <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start" }}>
-                      <div>
-                        <div style={{ fontWeight:700,fontSize:13 }}>{s.invoice_id}</div>
-                        <div style={{ fontSize:11,color:T.textMuted }}>{s.customers?.name||"সাধারণ"} · {fmtDate(s.created_at)}</div>
-                        <div style={{ fontSize:11,color:T.textSub,marginTop:2 }}>{s.payment_method}</div>
-                      </div>
-                      <div style={{ textAlign:"right" }}>
-                        <div style={{ fontWeight:800,color:T.brand,fontSize:14 }}>{taka(s.total)}</div>
-                        {+s.due>0 && <div style={{ fontSize:11,color:T.danger,fontWeight:700 }}>বাকি: {taka(s.due)}</div>}
-                        <Badge color={s.status==="paid"?"success":s.status==="due"?"danger":"warning"}>
-                          {s.status==="paid"?"পরিশোধ":s.status==="due"?"বাকি":"আংশিক"}
-                        </Badge>
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              }
-            </>
+          {/* মাসিক চার্ট */}
+          {data?.monthlyChart?.length > 0 && (
+            <Card style={{ marginBottom:16 }}>
+              <div style={{ fontWeight:800,fontSize:14,marginBottom:14 }}>📈 বিক্রয় চার্ট</div>
+              <div style={{ display:"flex",gap:6,alignItems:"flex-end",height:90 }}>
+                {data.monthlyChart.map((d, i) => (
+                  <div key={i} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4 }}>
+                    <div style={{ fontSize:9,color:T.brand,fontWeight:700 }}>{taka(d.value).replace("৳","")}</div>
+                    <div style={{ width:"100%",background:T.brandGrad,borderRadius:"4px 4px 0 0",height:Math.max(6, Math.round((d.value/maxChart)*70)),transition:"height 0.4s" }} />
+                    <div style={{ fontSize:9,color:T.textMuted }}>{d.name}</div>
+                  </div>
+                ))}
+              </div>
+            </Card>
           )}
+
+          {/* সেরা পণ্য */}
+          {data?.topProducts?.length > 0 && (
+            <Card style={{ marginBottom:16 }}>
+              <div style={{ fontWeight:800,fontSize:14,marginBottom:12 }}>🏆 সেরা বিক্রীত পণ্য</div>
+              {data.topProducts.slice(0, 5).map((p, i) => (
+                <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${T.border}` }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                    <div style={{ width:28,height:28,borderRadius:8,background:`${T.brand}15`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,color:T.brand }}>{i+1}</div>
+                    <span style={{ fontSize:13,fontWeight:600 }}>{p.name}</span>
+                  </div>
+                  <Badge color="brand">{p.qty} পিস</Badge>
+                </div>
+              ))}
+            </Card>
+          )}
+
+          {/* লো স্টক */}
+          {data?.lowStock?.length > 0 && (
+            <Card style={{ marginBottom:16,border:`1.5px solid ${T.warning}40` }}>
+              <div style={{ fontWeight:800,fontSize:14,color:T.warning,marginBottom:10 }}>⚠️ লো স্টক ({data.lowStock.length}টি পণ্য)</div>
+              {data.lowStock.slice(0, 5).map((p, i) => (
+                <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${T.border}` }}>
+                  <span style={{ fontSize:13,fontWeight:600 }}>{p.name}</span>
+                  <Badge color="warning">{p.stock} বাকি</Badge>
+                </div>
+              ))}
+            </Card>
+          )}
+
+          {/* ডাউনলোড */}
+          <Card>
+            <div style={{ fontWeight:800,fontSize:14,marginBottom:12 }}>📥 রিপোর্ট ডাউনলোড</div>
+            {[
+              { l:"দৈনিক বিক্রয় রিপোর্ট", t:"CSV", c:T.success },
+              { l:"মাসিক সারসংক্ষেপ",      t:"CSV", c:T.brand },
+              { l:"ইনভেন্টরি রিপোর্ট",     t:"CSV", c:T.info },
+            ].map((r, i) => (
+              <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",borderBottom:`1px solid ${T.border}` }}>
+                <span style={{ fontSize:13,fontWeight:600 }}>{r.l}</span>
+                <Btn variant="secondary" size="sm" style={{ color:r.c }}>
+                  <SvgIcon icon="download" size={14}/> {r.t}
+                </Btn>
+              </div>
+            ))}
+          </Card>
+
         </div>
       )}
     </div>
