@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -21,16 +20,15 @@ export async function PATCH(request, { params }) {
     if (payAmount) {
       const amt = Number(payAmount);
       // FIX: manual JS math instead of supabaseAdmin.raw()
+      // ✅ FIXED: total_paid → total_purchase (schema অনুযায়ী)
       const { data: sup } = await supabaseAdmin.from('suppliers')
-        .select('due_amount, total_paid').eq('id', params.id).single();
+        .select('due_amount, total_purchase').eq('id', params.id).single();
       if (!sup) return NextResponse.json({ error: 'সরবরাহকারী পাওয়া যায়নি' }, { status: 404 });
 
       const newDue  = Math.max(0, Number(sup.due_amount) - amt);
-      const newPaid = Number(sup.total_paid) + amt;
 
       await supabaseAdmin.from('suppliers').update({
-        due_amount: Math.round(newDue  * 100) / 100,
-        total_paid: Math.round(newPaid * 100) / 100,
+        due_amount: Math.round(newDue * 100) / 100,
       }).eq('id', params.id);
 
       return NextResponse.json({ success: true });
