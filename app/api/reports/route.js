@@ -5,94 +5,122 @@ import { supabaseAdmin } from '@/lib/supabase';
 export async function GET(req) {
   const user = getUserFromRequest(req);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!user.shopId) return NextResponse.json({});
+  if (!user.shopId) return NextResponse.json({ error: 'shopId নেই' }, { status: 400 });
 
   const { searchParams } = new URL(req.url);
   const now  = new Date();
-  const from = searchParams.get('from') || new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-  const to   = searchParams.get('to')   || now.toISOString().split('T')[0];
-  const toFull = to + 'T23:59:59';
+  const from = searchParams.get('from') || new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  const to   = searchParams.get('to')   || now.toISOString().slice(0, 10);
+  const toFull = to + 'T23:59:59.999Z';
+  const fromFull = from + 'T00:00:00.000Z';
 
   try {
-    const [salesRes, expRes, purRes, cusRes, productsRes] = await Promise.all([
-      // ✅ FIXED: paid_amount→paid, due_amount→due, cost_price→buy_price (products join দিয়ে)
+    // সব ডেটা একসাথে fetch
+    const [salesRes, expRes, purRes, productsRes] = await Promise.all([
       supabaseAdmin.from('sales')
-        .select('total, paid, due, payment_method, status, created_at, sale_items(quantity, unit_price, product_id, products(buy_price, name))')
-        .eq('shop_id', user.shopId).gte('created_at', from).lte('created_at', toFull),
+        .select('total, paid, due, payment_method, status, created_at, sale_items(quantity, unit_price, product_id, product_name, products(buy_price, name))')
+        .eq('shop_id', user.shopId)
+        .gte('created_at', fromFull)
+        .lte('created_at', toFull),
 
-      // ✅ FIXED: expenses.date column নেই — created_at দিয়ে filter
       supabaseAdmin.from('expenses')
         .select('amount, category, created_at')
-        .eq('shop_id', user.shopId).gte('created_at', from).lte('created_at', toFull),
+        .eq('shop_id', user.shopId)
+        .eq('is_deleted', false)
+        .gte('created_at', fromFull)
+        .lte('created_at', toFull),
 
       supabaseAdmin.from('purchases')
-        .select('total').eq('shop_id', user.shopId).gte('created_at', from).lte('created_at', toFull),
+        .select('total, paid, due')
+        .eq('shop_id', user.shopId)
+        .gte('created_at', fromFull)
+        .lte('created_at', toFull),
 
-      supabaseAdmin.from('customers')
-        .select('due_amount').eq('shop_id', user.shopId),
-
-      // ✅ FIXED: stock_quantity→stock, selling_price→sell_price, cost_price→buy_price
       supabaseAdmin.from('products')
-        .select('name, stock, sell_price, buy_price')
-        .eq('shop_id', user.shopId).eq('is_active', true),
+        .select('name, stock, sell_price, buy_price, low_stock_alert, unit')
+        .eq('shop_id', user.shopId)
+        .eq('is_active', true),
     ]);
 
-    const sales         = salesRes.data  || [];
-    const expenses      = expRes.data    || [];
-    const totalSales    = sales.reduce((s, x) => s + Number(x.total || 0), 0);
-    const totalPaid     = sales.reduce((s, x) => s + Number(x.paid  || 0), 0);  // ✅ FIXED
-    const totalDue      = (cusRes.data || []).reduce((s, x) => s + Number(x.due_amount || 0), 0);
-    const totalExpenses = expenses.reduce((s, x) => s + Number(x.amount || 0), 0);
-    const totalPurchase = (purRes.data || []).reduce((s, x) => s + Number(x.total || 0), 0);
+    const sales    = salesRes.data  || [];
+    const expenses = expRes.data    || [];
+    const purchases = purRes.data   || [];
+    const products = productsRes.data || [];
 
-    // ✅ FIXED: লাভ = (বিক্রয় মূল্য - ক্রয় মূল্য) × পরিমাণ — buy_price products join থেকে
-    let totalProfit = 0;
+    // ── মূল হিসাব ──
+    const totalSales    = sales.reduce((s, x) => s + Number(x.total || 0), 0);
+    const totalPaid     = sales.reduce((s, x) => s + Number(x.paid  || 0), 0);
+    const totalDue      = sales.reduce((s, x) => s + Number(x.due   || 0), 0); // sales.due থেকে
+    const totalExpenses = expenses.reduce((s, x) => s + Number(x.amount || 0), 0);
+    const totalPurchase = purchases.reduce((s, x) => s + Number(x.total || 0), 0);
+
+    // ── লাভ হিসাব: (বিক্রয় মূল্য − ক্রয় মূল্য) × পরিমাণ − খরচ ──
+    let grossProfit = 0;
     sales.forEach(s => {
-      (s.sale_items || []).forEach(i => {
-        const buyPrice = i.products?.buy_price || 0;
-        totalProfit += (Number(i.unit_price) - Number(buyPrice)) * Number(i.quantity);
+      (s.sale_items || []).forEach(item => {
+        const buyPrice = Number(item.products?.buy_price || 0);
+        grossProfit += (Number(item.unit_price) - buyPrice) * Number(item.quantity);
       });
     });
-    totalProfit -= totalExpenses;
+    const totalProfit = grossProfit - totalExpenses;
 
-    // মাসিক চার্ট
+    // ── মাসিক/দৈনিক চার্ট ──
     const monthMap = {};
     sales.forEach(s => {
-      const m = new Date(s.created_at).toLocaleDateString('bn-BD', { month: 'short' });
-      monthMap[m] = (monthMap[m] || 0) + Number(s.total);
+      const d = new Date(s.created_at);
+      const key = d.toLocaleDateString('bn-BD', { month: 'short', year: 'numeric' });
+      monthMap[key] = (monthMap[key] || 0) + Number(s.total);
     });
-    const monthlyChart = Object.entries(monthMap).map(([name, value]) => ({ name, value: Math.round(value) }));
+    const monthlyChart = Object.entries(monthMap)
+      .map(([name, value]) => ({ name, value: Math.round(value) }));
 
-    // সেরা পণ্য
-    const productSales = {};
+    // ── সেরা পণ্য ──
+    const productSalesMap = {};
     sales.forEach(s => {
-      (s.sale_items || []).forEach(i => {
-        const key = i.products?.name || 'অজানা';
-        productSales[key] = (productSales[key] || 0) + Number(i.quantity);
+      (s.sale_items || []).forEach(item => {
+        // product_name (sale_items column) অথবা products join থেকে
+        const name = item.product_name || item.products?.name || 'অজানা';
+        productSalesMap[name] = (productSalesMap[name] || 0) + Number(item.quantity);
       });
     });
-    const topProducts = Object.entries(productSales)
+    const topProducts = Object.entries(productSalesMap)
       .map(([name, qty]) => ({ name, qty }))
-      .sort((a, b) => b.qty - a.qty).slice(0, 10);
+      .sort((a, b) => b.qty - a.qty)
+      .slice(0, 10);
 
-    // লো স্টক পণ্য তালিকা
-    const lowStock = (productsRes.data || []).filter(p => Number(p.stock) <= 5);
+    // ── লো স্টক ──
+    const lowStock = products
+      .filter(p => Number(p.stock) <= Number(p.low_stock_alert || 5))
+      .sort((a, b) => Number(a.stock) - Number(b.stock));
+
+    // ── পেমেন্ট পদ্ধতি breakdown ──
+    const paymentMethods = sales.reduce((m, s) => {
+      const key = s.payment_method || 'অজানা';
+      m[key] = (m[key] || 0) + Number(s.total);
+      return m;
+    }, {});
+
+    // ── স্ট্যাটাস breakdown ──
+    const statusBreakdown = {
+      paid:    sales.filter(s => s.status === 'paid').length,
+      due:     sales.filter(s => s.status === 'due').length,
+      partial: sales.filter(s => s.status === 'partial').length,
+    };
 
     return NextResponse.json({
-      totalSales:    Math.round(totalSales),
-      totalPaid:     Math.round(totalPaid),
-      totalDue:      Math.round(totalDue),
-      totalExpenses: Math.round(totalExpenses),
-      totalPurchase: Math.round(totalPurchase),
-      totalProfit:   Math.round(totalProfit),
-      totalOrders:   sales.length,
+      totalSales:     Math.round(totalSales),
+      totalPaid:      Math.round(totalPaid),
+      totalDue:       Math.round(totalDue),
+      totalExpenses:  Math.round(totalExpenses),
+      totalPurchase:  Math.round(totalPurchase),
+      grossProfit:    Math.round(grossProfit),
+      totalProfit:    Math.round(totalProfit),
+      totalOrders:    sales.length,
       monthlyChart,
       topProducts,
       lowStock,
-      paymentMethods: sales.reduce((m, s) => {
-        m[s.payment_method] = (m[s.payment_method] || 0) + Number(s.total);
-        return m;
-      }, {}),
+      paymentMethods,
+      statusBreakdown,
     });
   } catch (e) {
     console.error('Reports error:', e);
