@@ -1,79 +1,114 @@
-import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
+"use client";
+import { useState, useEffect } from "react";
+import { T } from "@/lib/design";
+import { Card, Badge, Spinner, EmptyState } from "@/lib/ui";
+import { SvgIcon } from "@/lib/icons";
+import { taka, greeting, fmtDate } from "@/lib/helpers";
 
-export async function GET(req) {
-  try {
-    const shopId = req.nextUrl.searchParams.get("shopId");
-    if (!shopId) return NextResponse.json({ success: false, error: "shopId প্রয়োজন" }, { status: 400 });
+export default function DashboardPage({ user, setActive }) {
+  const [data,    setData]    = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    const now   = new Date();
-    const today = now.toISOString().slice(0, 10);
-    const monthStart = today.slice(0, 7) + "-01";
+  useEffect(() => {
+    if (!user?.shopId) { setLoading(false); return; }
+    fetch(`/api/dashboard?shopId=${user.shopId}`)
+      .then(r => r.json())
+      .then(d => { if (d.success) setData(d.data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [user?.shopId]);
 
-    // Today's sales
-    const { data: todaySales } = await supabaseAdmin.from("sales")
-      .select("total,paid,due,sale_items(quantity,unit_price,product_id,products(buy_price))")
-      .eq("shop_id", shopId)
-      .gte("created_at", today + "T00:00:00.000Z")
-      .lte("created_at", today + "T23:59:59.999Z");
+  if (loading) return <div style={{ padding:40,textAlign:"center" }}><Spinner/></div>;
 
-    const todayTotal  = todaySales?.reduce((s, x) => s + (+x.total || 0), 0) || 0;
-    const todayOrders = todaySales?.length || 0;
+  const stats = [
+    { label:"আজকের বিক্রয়", value: taka(data?.todayTotal||0),    color:T.brand,   icon:"cart",    bg:`${T.brand}12` },
+    { label:"আজকের লাভ",    value: taka(data?.todayProfit||0),   color:T.success, icon:"trending", bg:`${T.success}12` },
+    { label:"মোট বাকি",     value: taka(data?.totalDue||0),      color:T.warning, icon:"alert",   bg:`${T.warning}12` },
+    { label:"মোট পণ্য",     value: data?.totalProducts||0,       color:T.info,    icon:"box",     bg:`${T.info}12` },
+  ];
 
-    // Today profit
-    let todayProfit = 0;
-    todaySales?.forEach(s => {
-      (s.sale_items || []).forEach(i => {
-        const buy = i.products?.buy_price || 0;
-        todayProfit += (Number(i.unit_price) - Number(buy)) * Number(i.quantity);
-      });
-    });
+  const maxChart = Math.max(...(data?.chartData||[]).map(d=>d.sales), 1);
 
-    // Month sales
-    const { data: monthSales } = await supabaseAdmin.from("sales")
-      .select("total").eq("shop_id", shopId)
-      .gte("created_at", monthStart + "T00:00:00.000Z");
-    const monthTotal = monthSales?.reduce((s, x) => s + (+x.total || 0), 0) || 0;
+  return (
+    <div style={{ padding:"16px 16px 0" }}>
+      {/* Greeting */}
+      <div style={{ background:T.brandGrad,borderRadius:T.radiusLg,padding:"18px 20px",marginBottom:16,color:"#fff" }}>
+        <div style={{ fontSize:13,opacity:.85,marginBottom:2 }}>{greeting()} 👋</div>
+        <div style={{ fontWeight:800,fontSize:18 }}>{user?.name}</div>
+        <div style={{ fontSize:12,opacity:.75,marginTop:2 }}>{user?.shopName}</div>
+      </div>
 
-    // Low stock products
-    const { data: products } = await supabaseAdmin.from("products")
-      .select("id,name,stock,low_stock_alert,unit").eq("shop_id", shopId).eq("is_active", true);
-    const lowStockItems = (products || []).filter(p => (+p.stock) <= (+p.low_stock_alert));
+      {/* Stats grid */}
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16 }}>
+        {stats.map((s,i) => (
+          <Card key={i} style={{ padding:"14px 12px" }}>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8 }}>
+              <div style={{ width:36,height:36,borderRadius:10,background:s.bg,display:"flex",alignItems:"center",justifyContent:"center" }}>
+                <SvgIcon icon={s.icon} size={18} color={s.color}/>
+              </div>
+            </div>
+            <div style={{ fontWeight:800,fontSize:18,color:s.color }}>{s.value}</div>
+            <div style={{ fontSize:11,color:T.textMuted,marginTop:2 }}>{s.label}</div>
+          </Card>
+        ))}
+      </div>
 
-    // Total due from customers
-    const { data: customers } = await supabaseAdmin.from("customers")
-      .select("due_amount").eq("shop_id", shopId).gt("due_amount", 0);
-    const totalDue = customers?.reduce((s, c) => s + (+c.due_amount || 0), 0) || 0;
+      {/* Quick actions */}
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16 }}>
+        <button onClick={() => setActive("pos")} style={{ padding:"14px",borderRadius:T.radius,background:T.brandGrad,border:"none",cursor:"pointer",color:"#fff",fontWeight:700,fontSize:13,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8 }}>
+          <SvgIcon icon="pos" size={16} color="#fff"/>নতুন বিক্রয়
+        </button>
+        <button onClick={() => setActive("inventory")} style={{ padding:"14px",borderRadius:T.radius,background:`${T.info}12`,border:`1px solid ${T.info}30`,cursor:"pointer",color:T.info,fontWeight:700,fontSize:13,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8 }}>
+          <SvgIcon icon="plus" size={16} color={T.info}/>পণ্য যোগ
+        </button>
+      </div>
 
-    // Recent 5 sales
-    const { data: recentSales } = await supabaseAdmin.from("sales")
-      .select("id,invoice_id,total,payment_method,status,created_at,customers(name)")
-      .eq("shop_id", shopId).order("created_at", { ascending: false }).limit(5);
+      {/* Chart */}
+      {data?.chartData?.length > 0 && (
+        <Card style={{ marginBottom:16 }}>
+          <div style={{ fontWeight:800,fontSize:14,marginBottom:14 }}>📈 মাসিক বিক্রয়</div>
+          <div style={{ display:"flex",gap:6,alignItems:"flex-end",height:80 }}>
+            {data.chartData.map((d,i) => (
+              <div key={i} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4 }}>
+                <div style={{ width:"100%",background:T.brandGrad,borderRadius:"4px 4px 0 0",height:Math.max(4, Math.round((d.sales/maxChart)*70)),minHeight:4,transition:"height 0.3s" }}/>
+                <div style={{ fontSize:9,color:T.textMuted,writingMode:"horizontal-tb" }}>{d.month}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
-    // 6-month chart
-    const chartData = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const start = d.toISOString().slice(0, 7) + "-01";
-      const end   = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10);
-      const { data: ms } = await supabaseAdmin.from("sales")
-        .select("total").eq("shop_id", shopId)
-        .gte("created_at", start + "T00:00:00.000Z")
-        .lte("created_at", end + "T23:59:59.999Z");
-      const sales  = ms?.reduce((s, x) => s + (+x.total || 0), 0) || 0;
-      const profit = Math.round(sales * 0.2); // estimated
-      chartData.push({ month: ["জানু","ফেব্রু","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টে","অক্টো","নভে","ডিসে"][d.getMonth()], sales, profit });
-    }
+      {/* Low stock warning */}
+      {data?.lowStockItems?.length > 0 && (
+        <Card style={{ marginBottom:16,border:`1.5px solid ${T.warning}40` }}>
+          <div style={{ fontWeight:800,fontSize:14,color:T.warning,marginBottom:10 }}>⚠️ লো স্টক সতর্কতা</div>
+          {data.lowStockItems.slice(0,4).map(p => (
+            <div key={p.id} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${T.border}` }}>
+              <div style={{ fontSize:13,fontWeight:600 }}>{p.name}</div>
+              <Badge color="warning">{p.stock} {p.unit} বাকি</Badge>
+            </div>
+          ))}
+        </Card>
+      )}
 
-    // Total product count
-    const totalProducts = products?.length || 0;
-
-    return NextResponse.json({
-      success: true,
-      data: { todayTotal, todayOrders, todayProfit: Math.round(todayProfit), monthTotal, totalDue, totalProducts, lowStockItems, recentSales: recentSales || [], chartData }
-    });
-  } catch (err) {
-    console.error("Dashboard error:", err);
-    return NextResponse.json({ success: false, error: "ড্যাশবোর্ড লোড ব্যর্থ" }, { status: 500 });
-  }
+      {/* Recent sales */}
+      <Card style={{ marginBottom:16 }}>
+        <div style={{ fontWeight:800,fontSize:14,marginBottom:12 }}>🧾 সাম্প্রতিক বিক্রয়</div>
+        {!data?.recentSales?.length
+          ? <EmptyState icon="🧾" title="কোনো বিক্রয় নেই" sub="POS থেকে বিক্রয় শুরু করুন"/>
+          : data.recentSales.map(s => (
+            <div key={s.id} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`1px solid ${T.border}` }}>
+              <div>
+                <div style={{ fontWeight:700,fontSize:13 }}>{s.invoice_id}</div>
+                <div style={{ fontSize:11,color:T.textMuted }}>{s.customers?.name||"সাধারণ"} · {fmtDate(s.created_at)}</div>
+              </div>
+              <div style={{ textAlign:"right" }}>
+                <div style={{ fontWeight:800,color:T.brand }}>{taka(s.total)}</div>
+                <Badge color={s.status==="paid"?"success":s.status==="due"?"warning":"info"}>{s.status==="paid"?"পরিশোধ":s.status==="due"?"বাকি":"আংশিক"}</Badge>
+              </div>
+            </div>
+          ))
+        }
+      </Card>
+    </div>
+  );
 }
