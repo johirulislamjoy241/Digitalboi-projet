@@ -7,34 +7,33 @@ export async function GET(req) {
     if (!shopId) return NextResponse.json({ success: false, error: "shopId প্রয়োজন" }, { status: 400 });
 
     const now   = new Date();
-    // Bangladesh timezone offset = UTC+6
-    const bdNow = new Date(now.getTime() + 6 * 60 * 60 * 1000);
-    const today = bdNow.toISOString().slice(0, 10);
+    // Bangladesh timezone: UTC+6
+    const bdNow  = new Date(now.getTime() + 6 * 3600 * 1000);
+    const today  = bdNow.toISOString().slice(0, 10);
     const monthStart = today.slice(0, 7) + "-01";
 
-    // ── আজকের বিক্রয় (BD timezone) ──
-    const { data: todaySales, error: e1 } = await supabaseAdmin
-      .from("sales")
+    // ── আজকের বিক্রয় ──
+    const { data: todaySales } = await supabaseAdmin.from("sales")
       .select("total, paid, due, sale_items(quantity, unit_price, products(buy_price))")
       .eq("shop_id", shopId)
       .gte("created_at", today + "T00:00:00+06:00")
       .lte("created_at", today + "T23:59:59+06:00");
 
-    // fallback: UTC-based যদি উপরে কাজ না করে
-    const { data: todaySales2 } = e1 ? await supabaseAdmin
-      .from("sales")
-      .select("total, paid, due, sale_items(quantity, unit_price, products(buy_price))")
-      .eq("shop_id", shopId)
-      .gte("created_at", today + "T00:00:00.000Z")
-      .lte("created_at", today + "T23:59:59.999Z") : { data: null };
+    // fallback UTC
+    const { data: todaySalesUTC } = !todaySales?.length
+      ? await supabaseAdmin.from("sales")
+          .select("total, paid, due, sale_items(quantity, unit_price, products(buy_price))")
+          .eq("shop_id", shopId)
+          .gte("created_at", today + "T00:00:00.000Z")
+          .lte("created_at", today + "T23:59:59.999Z")
+      : { data: null };
 
-    const ts = todaySales?.length ? todaySales : (todaySales2 || []);
-
+    const ts = todaySales?.length ? todaySales : (todaySalesUTC || []);
     const todayTotal  = ts.reduce((s, x) => s + (+x.total || 0), 0);
     const todayOrders = ts.length;
     const todayDue    = ts.reduce((s, x) => s + (+x.due || 0), 0);
 
-    // আজকের লাভ = (বিক্রয় মূল্য − ক্রয় মূল্য) × পরিমাণ
+    // আজকের লাভ
     let todayProfit = 0;
     ts.forEach(s => {
       (s.sale_items || []).forEach(i => {
@@ -43,49 +42,45 @@ export async function GET(req) {
       });
     });
 
-    // ── এই মাসের মোট বিক্রয় ──
-    const { data: monthSales } = await supabaseAdmin
-      .from("sales")
-      .select("total")
-      .eq("shop_id", shopId)
+    // ── এই মাসের বিক্রয় ──
+    const { data: monthSales } = await supabaseAdmin.from("sales")
+      .select("total").eq("shop_id", shopId)
       .gte("created_at", monthStart + "T00:00:00.000Z");
     const monthTotal = (monthSales || []).reduce((s, x) => s + (+x.total || 0), 0);
 
     // ── মোট বাকি (sales.due থেকে — সবচেয়ে accurate) ──
-    const { data: dueSales } = await supabaseAdmin
-      .from("sales")
-      .select("due")
-      .eq("shop_id", shopId)
-      .gt("due", 0);
+    const { data: dueSales } = await supabaseAdmin.from("sales")
+      .select("due").eq("shop_id", shopId).gt("due", 0);
     const totalDue = (dueSales || []).reduce((s, x) => s + (+x.due || 0), 0);
 
-    // ── পণ্য (স্টক ও লো-স্টক) ──
-    const { data: products } = await supabaseAdmin
-      .from("products")
-      .select("id, name, stock, low_stock_alert, unit")
-      .eq("shop_id", shopId)
-      .eq("is_active", true);
+    // ── বাকি বিক্রির সংখ্যা ──
+    const { count: dueCount } = await supabaseAdmin.from("sales")
+      .select("id", { count: "exact", head: true })
+      .eq("shop_id", shopId).gt("due", 0);
 
-    const lowStockItems = (products || []).filter(p => (+p.stock) <= (+p.low_stock_alert));
-    const totalProducts = (products || []).length;
+    // ── পণ্য ──
+    const { data: products } = await supabaseAdmin.from("products")
+      .select("id, name, stock, low_stock_alert, unit")
+      .eq("shop_id", shopId).eq("is_active", true);
+
+    const allProducts  = products || [];
+    const lowStockItems = allProducts.filter(p => (+p.stock) <= (+p.low_stock_alert));
+    const totalProducts = allProducts.length;
 
     // ── সাম্প্রতিক ৫টি বিক্রয় ──
-    const { data: recentSales } = await supabaseAdmin
-      .from("sales")
+    const { data: recentSales } = await supabaseAdmin.from("sales")
       .select("id, invoice_id, total, paid, due, payment_method, status, created_at, customers(name)")
       .eq("shop_id", shopId)
-      .order("created_at", { ascending: false })
-      .limit(5);
+      .order("created_at", { ascending: false }).limit(5);
 
-    // ── ৬ মাসের চার্ট (লাভসহ) ──
+    // ── ৬ মাসের চার্ট ──
     const chartData = [];
     for (let i = 5; i >= 0; i--) {
       const d     = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const start = d.toISOString().slice(0, 7) + "-01";
       const end   = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10);
 
-      const { data: ms } = await supabaseAdmin
-        .from("sales")
+      const { data: ms } = await supabaseAdmin.from("sales")
         .select("total, sale_items(quantity, unit_price, products(buy_price))")
         .eq("shop_id", shopId)
         .gte("created_at", start + "T00:00:00.000Z")
@@ -113,9 +108,10 @@ export async function GET(req) {
         todayDue:     Math.round(todayDue),
         monthTotal:   Math.round(monthTotal),
         totalDue:     Math.round(totalDue),
+        dueCount:     dueCount || 0,
         totalProducts,
         lowStockItems,
-        recentSales: recentSales || [],
+        recentSales:  recentSales || [],
         chartData,
       }
     });
