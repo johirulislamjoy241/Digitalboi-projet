@@ -5,18 +5,21 @@ import { Card, Btn, Badge, Spinner } from "@/lib/ui";
 import { SvgIcon } from "@/lib/icons";
 import { taka, fmtDate } from "@/lib/helpers";
 
+// ── Shared TopBar ──
 function TopBar({ title, onBack }) {
   return (
     <div style={{ background:T.surface,padding:"14px 16px",display:"flex",alignItems:"center",gap:12,borderBottom:`1px solid ${T.border}`,position:"sticky",top:0,zIndex:50 }}>
-      <button onClick={onBack} style={{ background:`${T.brand}12`,border:"none",borderRadius:10,padding:8,cursor:"pointer",color:T.brand,display:"flex",alignItems:"center" }}><SvgIcon icon="back" size={18}/></button>
+      <button onClick={onBack} style={{ background:`${T.brand}12`,border:"none",borderRadius:10,padding:8,cursor:"pointer",color:T.brand,display:"flex",alignItems:"center" }}>
+        <SvgIcon icon="back" size={18}/>
+      </button>
       <h2 style={{ margin:0,fontSize:17,fontWeight:800,color:T.text }}>{title}</h2>
     </div>
   );
 }
 
-// ════════════════════════════════════════════════
-// 📊 REPORTS PAGE
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════
+// 📊 REPORTS PAGE — shopId দিয়ে সরাসরি
+// ════════════════════════════════════════
 function ReportsPage({ onBack, user }) {
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +30,7 @@ function ReportsPage({ onBack, user }) {
     const now   = new Date();
     const today = now.toISOString().slice(0, 10);
     if (p === "today") return { from: today, to: today };
-    if (p === "week")  return { from: new Date(now - 6*86400000).toISOString().slice(0,10), to: today };
+    if (p === "week")  return { from: new Date(now - 6 * 86400000).toISOString().slice(0,10), to: today };
     return { from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10), to: today };
   };
 
@@ -36,16 +39,9 @@ function ReportsPage({ onBack, user }) {
     if (!user?.shopId) { setLoading(false); return; }
     setLoading(true); setError("");
     const { from, to } = getRange(pr);
-    const token = typeof window !== "undefined" ? localStorage.getItem("digiboi_token") : null;
-    fetch(`/api/reports?from=${from}&to=${to}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    })
+    fetch(`/api/reports?shopId=${user.shopId}&from=${from}&to=${to}`)
       .then(r => r.json())
-      .then(d => {
-        if (d.error) setError(d.error);
-        else setData(d);
-        setLoading(false);
-      })
+      .then(d => { if (d.error) setError(d.error); else setData(d); setLoading(false); })
       .catch(() => { setError("সার্ভার সমস্যা"); setLoading(false); });
   }, [user?.shopId, period]);
 
@@ -54,11 +50,11 @@ function ReportsPage({ onBack, user }) {
   const maxChart = Math.max(...(data?.monthlyChart || []).map(d => d.value), 1);
 
   return (
-    <div style={{ paddingBottom:80 }}>
+    <div style={{ paddingBottom: 80 }}>
       <TopBar title="📊 রিপোর্ট ও বিশ্লেষণ" onBack={onBack}/>
 
-      {/* পিরিয়ড */}
-      <div style={{ padding:"12px 16px 0",display:"flex",gap:8 }}>
+      {/* পিরিয়ড বাটন */}
+      <div style={{ padding:"12px 16px 0", display:"flex", gap:8 }}>
         {[["today","আজ"],["week","৭ দিন"],["month","এই মাস"]].map(([p,l]) => (
           <button key={p} onClick={() => { setPeriod(p); load(p); }}
             style={{ flex:1,padding:"9px 4px",border:`2px solid ${period===p?T.brand:T.border}`,borderRadius:10,fontSize:13,fontWeight:700,cursor:"pointer",background:period===p?`${T.brand}12`:T.surface,color:period===p?T.brand:T.textMuted,fontFamily:"inherit" }}>
@@ -67,14 +63,16 @@ function ReportsPage({ onBack, user }) {
         ))}
       </div>
 
-      {loading ? <div style={{ padding:40,textAlign:"center" }}><Spinner/></div> : error ? (
+      {loading ? <div style={{ padding:40,textAlign:"center" }}><Spinner/></div>
+      : error ? (
         <div style={{ margin:16,background:"#FEE2E2",borderRadius:T.radius,padding:"12px 16px",color:T.danger,fontSize:13 }}>
-          ⚠️ {error} — <button onClick={() => load()} style={{ background:"none",border:"none",color:T.brand,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>আবার চেষ্টা</button>
+          ⚠️ {error} &nbsp;
+          <button onClick={() => load()} style={{ background:"none",border:"none",color:T.brand,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>আবার চেষ্টা</button>
         </div>
       ) : (
         <div style={{ padding:16 }}>
 
-          {/* মূল ৪টি স্ট্যাট */}
+          {/* মূল ৪ স্ট্যাট */}
           <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14 }}>
             {[
               { l:"মোট বিক্রয়",  v:taka(data?.totalSales  ||0), c:T.brand },
@@ -93,13 +91,13 @@ function ReportsPage({ onBack, user }) {
           <Card style={{ marginBottom:14 }}>
             <div style={{ fontWeight:800,fontSize:14,marginBottom:12 }}>💰 বিস্তারিত হিসাব</div>
             {[
-              { l:"মোট বিক্রয়",      v:taka(data?.totalSales    ||0), c:T.text },
-              { l:"পরিশোধ পেয়েছি",   v:taka(data?.totalPaid     ||0), c:T.success },
-              { l:"বাকি আছে",         v:taka(data?.totalDue      ||0), c:T.warning },
-              { l:"মোট ক্রয় (পার্চেজ)", v:taka(data?.totalPurchase||0), c:T.info },
-              { l:"মোট খরচ (এক্সপেন্স)", v:taka(data?.totalExpenses||0), c:T.danger },
-              { l:"গ্রস মুনাফা",       v:taka(data?.grossProfit   ||0), c:T.success },
-              { l:"নিট মুনাফা",        v:taka(data?.totalProfit   ||0), c:data?.totalProfit>=0?T.success:T.danger, bold:true },
+              { l:"মোট বিক্রয়",          v:taka(data?.totalSales    ||0), c:T.text },
+              { l:"পরিশোধ পেয়েছি",        v:taka(data?.totalPaid     ||0), c:T.success },
+              { l:"বাকি আছে",              v:taka(data?.totalDue      ||0), c:T.warning },
+              { l:"মোট ক্রয় (পার্চেজ)",   v:taka(data?.totalPurchase ||0), c:T.info },
+              { l:"মোট খরচ (এক্সপেন্স)", v:taka(data?.totalExpenses ||0), c:T.danger },
+              { l:"গ্রস মুনাফা",           v:taka(data?.grossProfit   ||0), c:T.success },
+              { l:"নিট মুনাফা",            v:taka(data?.totalProfit   ||0), c:data?.totalProfit>=0?T.success:T.danger, bold:true },
             ].map((r,i) => (
               <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:i<6?`1px solid ${T.border}`:"none" }}>
                 <span style={{ fontSize:13,color:T.textMuted }}>{r.l}</span>
@@ -108,7 +106,7 @@ function ReportsPage({ onBack, user }) {
             ))}
           </Card>
 
-          {/* অর্ডার স্ট্যাটাস */}
+          {/* অর্ডার অবস্থা */}
           {data?.statusBreakdown && (
             <Card style={{ marginBottom:14 }}>
               <div style={{ fontWeight:800,fontSize:14,marginBottom:10 }}>📋 অর্ডার অবস্থা</div>
@@ -140,7 +138,7 @@ function ReportsPage({ onBack, user }) {
             </Card>
           )}
 
-          {/* চার্ট */}
+          {/* বিক্রয় চার্ট */}
           {data?.monthlyChart?.length > 0 && (
             <Card style={{ marginBottom:14 }}>
               <div style={{ fontWeight:800,fontSize:14,marginBottom:12 }}>📈 বিক্রয় চার্ট</div>
@@ -148,7 +146,7 @@ function ReportsPage({ onBack, user }) {
                 {data.monthlyChart.map((d,i) => (
                   <div key={i} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3 }}>
                     <div style={{ fontSize:8,color:T.brand,fontWeight:700,textAlign:"center" }}>
-                      {d.value>=1000 ? (d.value/1000).toFixed(1)+"K" : d.value}
+                      {d.value>=1000?(d.value/1000).toFixed(1)+"K":d.value}
                     </div>
                     <div style={{ width:"100%",background:T.brandGrad,borderRadius:"4px 4px 0 0",height:Math.max(4,Math.round((d.value/maxChart)*74)),transition:"height 0.4s" }}/>
                     <div style={{ fontSize:8,color:T.textMuted,textAlign:"center" }}>{d.name}</div>
@@ -181,7 +179,7 @@ function ReportsPage({ onBack, user }) {
               {data.lowStock.slice(0,5).map((p,i) => (
                 <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${T.border}` }}>
                   <span style={{ fontSize:13,fontWeight:600 }}>{p.name}</span>
-                  <span style={{ fontSize:12,fontWeight:700,color:T.warning,background:`${T.warning}10`,padding:"3px 8px",borderRadius:6 }}>{p.stock} {p.unit||""} বাকি</span>
+                  <span style={{ fontSize:12,fontWeight:700,color:T.warning,background:`${T.warning}10`,padding:"3px 8px",borderRadius:6 }}>{p.stock} {p.unit} বাকি</span>
                 </div>
               ))}
             </Card>
@@ -193,9 +191,9 @@ function ReportsPage({ onBack, user }) {
   );
 }
 
-// ════════════════════════════════════════════════
-// 🧾 SALES HISTORY PAGE
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════
+// 🧾 SALES HISTORY — বাকি কালেকশনসহ
+// ════════════════════════════════════════
 function SalesHistoryPage({ onBack, user }) {
   const [sales,      setSales]      = useState([]);
   const [loading,    setLoading]    = useState(true);
@@ -203,48 +201,57 @@ function SalesHistoryPage({ onBack, user }) {
   const [search,     setSearch]     = useState("");
   const [collectFor, setCollectFor] = useState(null);
   const [colAmt,     setColAmt]     = useState("");
+  const [colMethod,  setColMethod]  = useState("নগদ");
   const [saving,     setSaving]     = useState(false);
 
   const load = useCallback(() => {
     if (!user?.shopId) { setLoading(false); return; }
-    setLoading(true);
     fetch(`/api/sales?shopId=${user.shopId}&limit=100`)
       .then(r => r.json())
       .then(d => { setSales(d.success ? (d.data || []) : []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { setSales([]); setLoading(false); });
   }, [user?.shopId]);
 
   useEffect(() => { load(); }, [load]);
 
   const filtered = sales.filter(s =>
     (filter === "all" || s.status === filter) &&
-    (!search || (s.invoice_id||"").toLowerCase().includes(search.toLowerCase()) || (s.customers?.name||"").toLowerCase().includes(search.toLowerCase()))
+    (!search || (s.invoice_id||"").toLowerCase().includes(search.toLowerCase()) ||
+     (s.customers?.name||"").toLowerCase().includes(search.toLowerCase()))
   );
 
   const totalSales = filtered.reduce((s,x) => s + (+x.total||0), 0);
   const totalDue   = filtered.reduce((s,x) => s + (+x.due  ||0), 0);
   const totalPaid  = filtered.reduce((s,x) => s + (+x.paid ||0), 0);
 
-  const STATUS_LABEL = { paid:"✅ পরিশোধ", due:"⏳ বাকি", partial:"~ আংশিক" };
-  const STATUS_COLOR = { paid:T.success, due:T.warning, partial:T.info };
-
   const collectDue = async () => {
     if (!colAmt || +colAmt <= 0 || !collectFor) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/sales/${collectFor.id}`, {
-        method:"PATCH", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ action:"collect_due", amount:+colAmt })
+        method:"PATCH",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ amount: +colAmt, method: colMethod })
       });
       const d = await res.json();
-      if (d.success) { setCollectFor(null); setColAmt(""); load(); }
+      if (d.success) {
+        setSales(prev => prev.map(s => s.id === collectFor.id
+          ? { ...s, due: d.newDue, paid: d.newPaid, status: d.newStatus }
+          : s
+        ));
+        setCollectFor(null); setColAmt(""); setColMethod("নগদ");
+      }
     } catch {}
     setSaving(false);
   };
 
+  const STATUS_LABEL = { paid:"✅ পরিশোধ", due:"⏳ বাকি", partial:"~ আংশিক" };
+  const STATUS_COLOR = { paid:T.success, due:T.warning, partial:T.info };
+
   return (
     <div style={{ paddingBottom:80 }}>
       <TopBar title="🧾 বিক্রয় ইতিহাস" onBack={onBack}/>
+
       <div style={{ padding:"12px 16px 0" }}>
         {/* সারসংক্ষেপ */}
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12 }}>
@@ -259,19 +266,22 @@ function SalesHistoryPage({ onBack, user }) {
             </Card>
           ))}
         </div>
+
         {/* সার্চ */}
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ইনভয়েস বা গ্রাহকের নাম..."
           style={{ width:"100%",padding:"11px 16px",border:`2px solid ${T.border}`,borderRadius:12,fontSize:14,fontFamily:"inherit",outline:"none",marginBottom:10,boxSizing:"border-box",background:T.surface }}/>
+
         {/* ফিল্টার */}
         <div style={{ display:"flex",gap:6,marginBottom:12,overflowX:"auto" }}>
           {[["all","সব"],["paid","পরিশোধ"],["due","বাকি"],["partial","আংশিক"]].map(([k,l]) => (
             <button key={k} onClick={() => setFilter(k)}
               style={{ padding:"6px 12px",border:`2px solid ${filter===k?T.brand:T.border}`,borderRadius:20,fontSize:11,fontWeight:700,cursor:"pointer",background:filter===k?`${T.brand}12`:T.surface,color:filter===k?T.brand:T.textMuted,fontFamily:"inherit",whiteSpace:"nowrap" }}>
-              {l} {k!=="all"?`(${sales.filter(s=>s.status===k).length})`:``}
+              {l} {k!=="all"?`(${sales.filter(s=>s.status===k).length})`:""}
             </button>
           ))}
         </div>
       </div>
+
       <div style={{ padding:"0 16px" }}>
         {loading ? <div style={{ padding:40,textAlign:"center" }}><Spinner/></div>
         : filtered.length === 0 ? <div style={{ padding:"40px 0",textAlign:"center",color:T.textMuted,fontSize:14 }}>কোনো বিক্রয় পাওয়া যায়নি</div>
@@ -280,8 +290,10 @@ function SalesHistoryPage({ onBack, user }) {
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6 }}>
               <div>
                 <div style={{ fontWeight:700,fontSize:14 }}>{s.customers?.name||"সাধারণ গ্রাহক"}</div>
-                <div style={{ fontSize:11,color:T.textMuted,marginTop:1 }}>{s.invoice_id} · {fmtDate(s.created_at)}</div>
-                <div style={{ fontSize:11,color:T.textMuted }}>{s.sale_items?.length||0}টি পণ্য · {s.payment_method}</div>
+                <div style={{ fontSize:11,color:T.textMuted,marginTop:1 }}>
+                  {s.invoice_id} · {s.sale_items?.length||0}টি পণ্য · {fmtDate(s.created_at)}
+                </div>
+                <div style={{ fontSize:11,color:T.textMuted }}>{s.payment_method}</div>
               </div>
               <div style={{ textAlign:"right" }}>
                 <div style={{ fontWeight:800,fontSize:16,color:T.brand }}>{taka(s.total)}</div>
@@ -295,9 +307,9 @@ function SalesHistoryPage({ onBack, user }) {
             </div>
             {(+s.due)>0 && (
               <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",paddingTop:8,borderTop:`1px solid ${T.border}` }}>
-                <span style={{ fontSize:12,color:T.warning,fontWeight:700 }}>বাকি: {taka(s.due)}</span>
-                <button onClick={() => { setCollectFor(s); setColAmt(s.due); }}
-                  style={{ padding:"5px 14px",background:T.warning,border:"none",borderRadius:8,fontSize:12,color:"#fff",cursor:"pointer",fontWeight:700,fontFamily:"inherit" }}>
+                <span style={{ fontSize:13,color:T.warning,fontWeight:700 }}>বাকি: {taka(s.due)}</span>
+                <button onClick={() => { setCollectFor(s); setColAmt(String(s.due)); }}
+                  style={{ padding:"6px 14px",background:T.warning,border:"none",borderRadius:8,fontSize:12,color:"#fff",cursor:"pointer",fontWeight:700,fontFamily:"inherit" }}>
                   💰 কালেক্ট
                 </button>
               </div>
@@ -306,25 +318,46 @@ function SalesHistoryPage({ onBack, user }) {
         ))}
       </div>
 
-      {/* বাকি আদায় মডাল */}
+      {/* বাকি কালেকশন মডাল */}
       {collectFor && (
         <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center" }} onClick={() => setCollectFor(null)}>
-          <div style={{ background:T.surface,borderRadius:"24px 24px 0 0",width:"100%",maxWidth:430,padding:20 }} onClick={e=>e.stopPropagation()}>
-            <div style={{ fontWeight:800,fontSize:16,marginBottom:4 }}>💰 বাকি আদায়</div>
-            <div style={{ fontSize:13,color:T.textMuted,marginBottom:14 }}>{collectFor.customers?.name||"সাধারণ গ্রাহক"} — মোট বাকি: <strong style={{ color:T.warning }}>{taka(collectFor.due)}</strong></div>
-            <input type="number" value={colAmt} onChange={e=>setColAmt(e.target.value)} placeholder="পরিমাণ (৳)"
-              style={{ width:"100%",padding:"12px",border:`2px solid ${T.border}`,borderRadius:T.radius,fontSize:15,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:12 }}/>
-            <div style={{ display:"flex",gap:8,marginBottom:12 }}>
-              {[collectFor.due, 500, 1000].filter((v,i,a)=>v>0&&a.indexOf(v)===i).slice(0,3).map(v=>(
-                <button key={v} onClick={()=>setColAmt(v)}
-                  style={{ flex:1,padding:"8px 4px",background:+colAmt===+v?`${T.brand}15`:T.bg,border:`1px solid ${+colAmt===+v?T.brand:T.border}`,borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer",color:+colAmt===+v?T.brand:T.textMuted,fontFamily:"inherit" }}>
+          <div style={{ background:T.surface,borderRadius:"24px 24px 0 0",width:"100%",maxWidth:430,padding:20 }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight:800,fontSize:16,marginBottom:4 }}>💰 বাকি কালেকশন</div>
+            <div style={{ fontSize:13,color:T.textMuted,marginBottom:4 }}>
+              {collectFor.customers?.name||"সাধারণ গ্রাহক"} · {collectFor.invoice_id}
+            </div>
+            <div style={{ background:`${T.warning}12`,borderRadius:8,padding:"10px 14px",marginBottom:14,border:`1px solid ${T.warning}30` }}>
+              <span style={{ fontSize:13,color:T.textMuted }}>মোট বাকি: </span>
+              <strong style={{ color:T.warning,fontSize:15 }}>{taka(collectFor.due)}</strong>
+            </div>
+            <div style={{ marginBottom:10 }}>
+              <label style={{ fontSize:12,fontWeight:700,color:T.textMuted,display:"block",marginBottom:6 }}>পরিমাণ (৳)</label>
+              <input type="number" value={colAmt} onChange={e => setColAmt(e.target.value)} placeholder="পরিমাণ"
+                style={{ width:"100%",padding:"12px",border:`2px solid ${T.border}`,borderRadius:T.radius,fontSize:15,fontFamily:"inherit",outline:"none",boxSizing:"border-box" }}/>
+            </div>
+            {/* শর্টকাট বাটন */}
+            <div style={{ display:"flex",gap:6,marginBottom:12 }}>
+              {[collectFor.due, 500, 1000].filter((v,i,a) => v>0 && a.indexOf(v)===i).slice(0,3).map(v => (
+                <button key={v} onClick={() => setColAmt(String(v))}
+                  style={{ flex:1,padding:"7px 4px",background:+colAmt===+v?`${T.brand}15`:T.bg,border:`1px solid ${+colAmt===+v?T.brand:T.border}`,borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer",color:+colAmt===+v?T.brand:T.textMuted,fontFamily:"inherit" }}>
                   {taka(v)}
                 </button>
               ))}
             </div>
+            {/* পেমেন্ট পদ্ধতি */}
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginBottom:14 }}>
+              {["নগদ","বিকাশ","রকেট","কার্ড"].map(m => (
+                <button key={m} onClick={() => setColMethod(m)}
+                  style={{ padding:"8px 4px",borderRadius:8,border:`1.5px solid ${colMethod===m?T.brand:T.border}`,background:colMethod===m?`${T.brand}10`:"transparent",fontWeight:700,fontSize:11,color:colMethod===m?T.brand:T.textMuted,cursor:"pointer",fontFamily:"inherit" }}>
+                  {m}
+                </button>
+              ))}
+            </div>
             <div style={{ display:"flex",gap:10 }}>
-              <button onClick={()=>setCollectFor(null)} style={{ flex:1,padding:12,background:T.bg,border:"none",borderRadius:T.radius,fontSize:14,cursor:"pointer",fontWeight:700,fontFamily:"inherit" }}>বাতিল</button>
-              <button onClick={collectDue} disabled={saving} style={{ flex:1,padding:12,background:T.brand,border:"none",borderRadius:T.radius,fontSize:14,color:"#fff",cursor:"pointer",fontWeight:700,fontFamily:"inherit" }}>{saving?"সংরক্ষণ...":"✅ নিশ্চিত"}</button>
+              <button onClick={() => setCollectFor(null)} style={{ flex:1,padding:12,background:T.bg,border:"none",borderRadius:T.radius,fontSize:14,cursor:"pointer",fontWeight:700,fontFamily:"inherit" }}>বাতিল</button>
+              <button onClick={collectDue} disabled={saving} style={{ flex:2,padding:12,background:T.brand,border:"none",borderRadius:T.radius,fontSize:14,color:"#fff",cursor:"pointer",fontWeight:700,fontFamily:"inherit" }}>
+                {saving?"সংরক্ষণ...":"✅ কালেক্ট করুন"}
+              </button>
             </div>
           </div>
         </div>
@@ -333,7 +366,6 @@ function SalesHistoryPage({ onBack, user }) {
   );
 }
 
-// ── AI Tools Sub-page ─────────────────────────────────────────
 function AIPage({ onBack }) {
   const [result,   setResult]   = useState(null);
   const [loading,  setLoading]  = useState(false);
@@ -519,8 +551,8 @@ function AdminPage({ onBack }) {
 export default function MorePage({ user, setActive, onLogout }) {
   const [sub, setSub] = useState(null);
 
-  if (sub === "reports")  return <ReportsPage      onBack={() => setSub(null)} user={user}/>;
-  if (sub === "sales")    return <SalesHistoryPage onBack={() => setSub(null)} user={user}/>;
+  if (sub === "reports") return <ReportsPage      onBack={() => setSub(null)} user={user}/>;
+  if (sub === "sales")   return <SalesHistoryPage onBack={() => setSub(null)} user={user}/>;
   if (sub === "ai")       return <AIPage       onBack={() => setSub(null)}/>;
   if (sub === "loyalty")  return <LoyaltyPage  onBack={() => setSub(null)}/>;
   if (sub === "admin")    return <AdminPage    onBack={() => setSub(null)}/>;
