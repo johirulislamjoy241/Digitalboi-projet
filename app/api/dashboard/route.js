@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
-export async function GET(req) { j
+export async function GET(req) {
   try {
     const shopId = req.nextUrl.searchParams.get("shopId");
     if (!shopId) return NextResponse.json({ success: false, error: "shopId প্রয়োজন" }, { status: 400 });
