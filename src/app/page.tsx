@@ -15,11 +15,13 @@ import DueLedgerSection from '@/components/sections/DueLedger'
 import ReportsSection from '@/components/sections/Reports'
 import SettingsSection from '@/components/sections/Settings'
 import { SecuritySection, HelpSection, PrivacySection, DisclaimerSection, TermsSection } from '@/components/sections/StaticSections'
-import { Home, Package, ScanLine, BookOpen, BarChart2, MoreHorizontal } from 'lucide-react'
+
+// Home আইকনটিকে HomeIcon হিসেবে রিনেম করা হলো কনফ্লিক্ট এড়াতে
+import { Home as HomeIcon, Package, ScanLine, BookOpen, BarChart2, MoreHorizontal } from 'lucide-react'
 
 // Bottom nav items
 const BOTTOM_NAV = [
-  { id: 'dashboard' as ActiveSection, icon: Home, label: 'হোম' },
+  { id: 'dashboard' as ActiveSection, icon: HomeIcon, label: 'হোম' },
   { id: 'inventory' as ActiveSection, icon: Package, label: 'পণ্য' },
   { id: 'pos' as ActiveSection, icon: ScanLine, label: 'POS', isCenter: true },
   { id: 'dueledger' as ActiveSection, icon: BookOpen, label: 'বকেয়া' },
@@ -53,7 +55,6 @@ function AppShell() {
   if (!user) return <AuthScreen />
 
   const isMoreActive = MORE_SECTIONS.includes(activeSection)
-  // POS section needs different padding (no scroll padding, full-height layout)
   const isPOS = activeSection === 'pos'
 
   return (
@@ -118,9 +119,6 @@ function AppShell() {
             </button>
           )
         })}
-
-        {/* More button (replaces 5th if needed) — add as 5th slot as reports, but keep a more in extra */}
-        {/* Note: the 5th slot is Reports — "more" is accessible via MoreMenu button on topbar */}
       </nav>
 
       {/* More Menu floating button */}
@@ -137,7 +135,7 @@ function AppShell() {
         }}
         aria-label="আরো"
       >
-        <MoreHorizontal size={18} />
+        < MoreHorizontal size={18} />
       </button>
 
       {showMore && <MoreMenu onClose={() => setShowMore(false)} />}
