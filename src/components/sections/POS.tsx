@@ -64,7 +64,6 @@ export default function POSSection() {
   }, [scanning, scanBuffer, inventory]) // eslint-disable-line
 
   function handleBarcodeScan(code: string) {
-    // Search by name or product_link containing the barcode
     const found = inventory.find(i =>
       i.status !== 'Archived' && (
         i.name.toLowerCase() === code.toLowerCase() ||
@@ -131,7 +130,6 @@ export default function POSSection() {
     if (payMode === 'due' && !customerName) return toast('বকেয়ার জন্য ক্রেতার নাম দিন', 'er')
     setProcessing(true)
     try {
-      const results = []
       for (const item of cart) {
         const res = await api.doTransaction({
           product_id: item.product.id,
@@ -143,13 +141,13 @@ export default function POSSection() {
           sell_price: item.unitPrice,
           notes: customerName ? `POS - ${customerName}` : 'POS বিক্রয়'
         })
-        results.push(res)
-        // Update inventory in store
-        setInventory(prev => prev.map(i => i.id === item.product.id
+        
+        // টাইপ এরর এখানে ফিক্স করা হয়েছে (prev: InventoryItem[])
+        setInventory((prev: InventoryItem[]) => prev.map(i => i.id === item.product.id
           ? { ...i, quantity: res.new_qty, status: res.new_qty <= 0 ? 'Out of Stock' : res.new_qty <= 10 ? 'Low Stock' : 'In Stock' }
           : i
         ))
-        setTransactions(prev => [res.data, ...prev])
+        setTransactions((prev: any[]) => [res.data, ...prev])
       }
 
       setLastSale({ total: cartTotal, profit: cartProfit, change: Math.max(0, change) })
@@ -170,8 +168,6 @@ export default function POSSection() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0, height: 'calc(100dvh - var(--topbar-h) - var(--nav-h))', overflow: 'hidden', margin: '-16px', padding: '12px 12px 0' }}>
-
-      {/* Search Header */}
       <div style={{ marginBottom: 10 }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 0 }}>
           <div className="search-bar" style={{ flex: 1, marginBottom: 0 }}>
@@ -185,7 +181,6 @@ export default function POSSection() {
             />
             {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 0 }}>✕</button>}
           </div>
-          {/* Cart button */}
           <button
             onClick={() => setShowCart(true)}
             style={{
@@ -208,7 +203,6 @@ export default function POSSection() {
         </div>
       </div>
 
-      {/* Product Grid - scrollable */}
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 80 }}>
         {filtered.length === 0 ? (
           <div className="empty-state" style={{ padding: '40px 20px' }}>
@@ -257,7 +251,6 @@ export default function POSSection() {
         )}
       </div>
 
-      {/* Floating Cart Summary */}
       {cart.length > 0 && !showCart && (
         <div style={{
           position: 'fixed', bottom: 'calc(var(--nav-h) + 12px)', left: '50%',
@@ -280,7 +273,6 @@ export default function POSSection() {
         </div>
       )}
 
-      {/* QR Scanner Button */}
       <button
         onClick={() => { setScanning(true); toast('স্ক্যানার চালু! বারকোড স্ক্যান করুন...', 'in') }}
         style={{
@@ -296,7 +288,6 @@ export default function POSSection() {
         <ScanLine size={20} />
       </button>
 
-      {/* Scanning Overlay */}
       {scanning && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 800,
@@ -313,10 +304,6 @@ export default function POSSection() {
             <div style={{ position: 'absolute', bottom: -2, right: -2, width: 30, height: 30, borderBottom: '4px solid var(--primary)', borderRight: '4px solid var(--primary)', borderRadius: '0 0 4px 0' }} />
             <ScanLine size={60} color="rgba(255,87,34,0.4)" />
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.78rem', fontFamily: 'var(--font-bn)', textAlign: 'center', maxWidth: 260 }}>
-            স্ক্যানার বা কীবোর্ড দিয়ে বারকোড পড়ুন।<br />পণ্যের নামও লিখতে পারেন।
-          </div>
-          {/* Manual input for mobile */}
           <div style={{ display: 'flex', gap: 8, width: '80%', maxWidth: 280 }}>
             <input
               className="input"
@@ -337,7 +324,6 @@ export default function POSSection() {
         </div>
       )}
 
-      {/* Cart Sheet */}
       {showCart && (
         <div className="modal-overlay" onClick={() => setShowCart(false)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxHeight: '92dvh' }}>
@@ -369,7 +355,6 @@ export default function POSSection() {
                       </button>
                     </div>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      {/* Qty control */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface2)', borderRadius: 10, padding: '4px 6px', border: '1px solid var(--border)' }}>
                         <button onClick={() => updateQty(item.product.id, -1)} disabled={item.qty <= 1} style={{ width: 24, height: 24, borderRadius: 7, border: 'none', background: 'var(--surface3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text2)', flexShrink: 0 }}>
                           <Minus size={12} />
@@ -379,7 +364,6 @@ export default function POSSection() {
                           <Plus size={12} />
                         </button>
                       </div>
-                      {/* Price input */}
                       <div style={{ flex: 1, position: 'relative' }}>
                         <input
                           className="input"
@@ -401,7 +385,6 @@ export default function POSSection() {
 
             {cart.length > 0 && (
               <>
-                {/* Totals */}
                 <div style={{ background: 'var(--surface2)', borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                     <span style={{ fontSize: '0.78rem', color: 'var(--text2)', fontFamily: 'var(--font-bn)' }}>সর্বমোট</span>
@@ -415,13 +398,11 @@ export default function POSSection() {
                   </div>
                 </div>
 
-                {/* Customer name */}
                 <div className="input-group">
                   <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><User size={13} /> ক্রেতার নাম {payMode === 'due' ? '*' : '(ঐচ্ছিক)'}</label>
                   <input className="input" placeholder="ক্রেতার নাম লিখুন..." value={customerName} onChange={e => setCustomerName(e.target.value)} />
                 </div>
 
-                {/* Pay mode */}
                 <div className="tabs" style={{ marginBottom: 12 }}>
                   <button className={`tab ${payMode === 'cash' ? 'active' : ''}`} onClick={() => setPayMode('cash')}>
                     <Banknote size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} /> নগদ
@@ -431,7 +412,6 @@ export default function POSSection() {
                   </button>
                 </div>
 
-                {/* Cash calculation */}
                 {payMode === 'cash' && (
                   <div className="input-group">
                     <label className="input-label">প্রদত্ত টাকা</label>
@@ -464,7 +444,6 @@ export default function POSSection() {
         </div>
       )}
 
-      {/* Success Screen */}
       {showSuccess && lastSale && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 900,
@@ -477,7 +456,6 @@ export default function POSSection() {
           }}>
             <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--success-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '2rem' }}>✅</div>
             <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text)', fontFamily: 'var(--font-bn)', marginBottom: 4 }}>বিক্রয় সম্পন্ন!</div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)', marginBottom: 20 }}>ধন্যবাদ</div>
             <div style={{ background: 'var(--surface2)', borderRadius: 12, padding: '14px', marginBottom: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text2)', fontFamily: 'var(--font-bn)' }}>মোট বিক্রয়</span>
