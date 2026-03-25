@@ -132,6 +132,12 @@ export default function POSSection() {
     try {
       for (const item of cart) {
         const res = await api.doTransaction({
+      try {
+      // আমরা ইনভেন্টরির একটি লোকাল কপি নিচ্ছি আপডেট করার জন্য
+      let currentInventory = [...inventory];
+
+      for (const item of cart) {
+        const res = await api.doTransaction({
           product_id: item.product.id,
           product_name: item.product.name,
           txn_type: 'out',
@@ -142,13 +148,22 @@ export default function POSSection() {
           notes: customerName ? `POS - ${customerName}` : 'POS বিক্রয়'
         })
         
-        // টাইপ এরর এখানে ফিক্স করা হয়েছে (prev: InventoryItem[])
-        setInventory((prev: InventoryItem[]) => prev.map(i => i.id === item.product.id
-          ? { ...i, quantity: res.new_qty, status: res.new_qty <= 0 ? 'Out of Stock' : res.new_qty <= 10 ? 'Low Stock' : 'In Stock' }
+        // লোকাল কপিটি আপডেট করছি
+        currentInventory = currentInventory.map(i => i.id === item.product.id
+          ? { 
+              ...i, 
+              quantity: res.new_qty, 
+              status: res.new_qty <= 0 ? 'Out of Stock' : res.new_qty <= 10 ? 'Low Stock' : 'In Stock' 
+            }
           : i
-        ))
-        setTransactions((prev: any[]) => [res.data, ...prev])
+        );
+
+        // ট্রানজেকশন হিস্ট্রি আপডেট (যদি এটিও এরর দেয় তবে সরাসরি ভ্যালু দিন)
+        setTransactions([res.data, ...transactions]);
       }
+
+      // লুপ শেষ হওয়ার পর একবারে পুরো আপডেট হওয়া ইনভেন্টরি সেট করে দিচ্ছি
+      setInventory(currentInventory);
 
       setLastSale({ total: cartTotal, profit: cartProfit, change: Math.max(0, change) })
       setShowSuccess(true)
