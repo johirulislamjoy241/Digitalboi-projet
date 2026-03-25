@@ -30,7 +30,6 @@ export default function POSSection() {
   const [lastSale, setLastSale] = useState<{ total: number; profit: number; change: number } | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
 
-  // QR scan state
   const [scanning, setScanning] = useState(false)
   const [scanBuffer, setScanBuffer] = useState('')
   const scanTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -39,7 +38,6 @@ export default function POSSection() {
     if (inventory.length === 0) api.getInventory().then(setInventory)
   }, []) // eslint-disable-line
 
-  // Handle keyboard-based barcode scanner (HID scanners type fast)
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (!scanning) return
@@ -60,7 +58,10 @@ export default function POSSection() {
       }
     }
     window.addEventListener('keydown', onKeyDown)
-    return () => { window.removeEventListener('keydown', onKeyDown); if (scanTimer.current) clearTimeout(scanTimer.current) }
+    return () => { 
+      window.removeEventListener('keydown', onKeyDown)
+      if (scanTimer.current) clearTimeout(scanTimer.current) 
+    }
   }, [scanning, scanBuffer, inventory]) // eslint-disable-line
 
   function handleBarcodeScan(code: string) {
@@ -94,7 +95,7 @@ export default function POSSection() {
     setCart(prev => {
       const existing = prev.find(c => c.product.id === product.id)
       if (existing) {
-        if (existing.qty >= product.quantity) return toast('স্টক পর্যাপ্ত নেই', 'er'), prev
+        if (existing.qty >= product.quantity) return (toast('স্টক পর্যাপ্ত নেই', 'er'), prev)
         return prev.map(c => c.product.id === product.id ? { ...c, qty: c.qty + 1 } : c)
       }
       return [...prev, { product, qty: 1, unitPrice: product.sell_price }]
@@ -128,13 +129,12 @@ export default function POSSection() {
   async function checkout() {
     if (cart.length === 0) return toast('কার্ট খালি', 'er')
     if (payMode === 'due' && !customerName) return toast('বকেয়ার জন্য ক্রেতার নাম দিন', 'er')
+    
     setProcessing(true)
+    
     try {
-      for (const item of cart) {
-        const res = await api.doTransaction({
-      try {
-      // আমরা ইনভেন্টরির একটি লোকাল কপি নিচ্ছি আপডেট করার জন্য
-      let currentInventory = [...inventory];
+      let currentInventory = [...inventory]
+      let currentTransactions = [...transactions]
 
       for (const item of cart) {
         const res = await api.doTransaction({
@@ -148,7 +148,6 @@ export default function POSSection() {
           notes: customerName ? `POS - ${customerName}` : 'POS বিক্রয়'
         })
         
-        // লোকাল কপিটি আপডেট করছি
         currentInventory = currentInventory.map(i => i.id === item.product.id
           ? { 
               ...i, 
@@ -156,14 +155,13 @@ export default function POSSection() {
               status: res.new_qty <= 0 ? 'Out of Stock' : res.new_qty <= 10 ? 'Low Stock' : 'In Stock' 
             }
           : i
-        );
+        )
 
-        // ট্রানজেকশন হিস্ট্রি আপডেট (যদি এটিও এরর দেয় তবে সরাসরি ভ্যালু দিন)
-        setTransactions([res.data, ...transactions]);
+        currentTransactions = [res.data, ...currentTransactions]
       }
 
-      // লুপ শেষ হওয়ার পর একবারে পুরো আপডেট হওয়া ইনভেন্টরি সেট করে দিচ্ছি
-      setInventory(currentInventory);
+      setInventory(currentInventory)
+      setTransactions(currentTransactions)
 
       setLastSale({ total: cartTotal, profit: cartProfit, change: Math.max(0, change) })
       setShowSuccess(true)
@@ -172,8 +170,12 @@ export default function POSSection() {
       setCashGiven('')
       setShowCart(false)
       toast(`✅ বিক্রয় সম্পন্ন! মোট: ${fmt(cartTotal)}`, 'ok')
-    } catch (e: unknown) { toast((e as Error).message || 'সমস্যা হয়েছে', 'er') }
-    setProcessing(false)
+      
+    } catch (e: unknown) { 
+      toast((e as Error).message || 'সমস্যা হয়েছে', 'er') 
+    } finally {
+      setProcessing(false)
+    }
   }
 
   const CAT_EMOJI: Record<string, string> = {
