@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { AppProvider, useAppStore, type ActiveSection } from '@/lib/app-store'
 import { ToastProvider } from '@/lib/toast-context'
@@ -17,7 +17,6 @@ import SettingsSection from '@/components/sections/Settings'
 import { SecuritySection, HelpSection, PrivacySection, DisclaimerSection, TermsSection } from '@/components/sections/StaticSections'
 import { Home as HomeIcon, Package, ScanLine, BookOpen, BarChart2, MoreHorizontal } from 'lucide-react'
 
-// Bottom nav items
 const BOTTOM_NAV = [
   { id: 'dashboard' as ActiveSection, icon: HomeIcon, label: 'হোম' },
   { id: 'inventory' as ActiveSection, icon: Package, label: 'পণ্য' },
@@ -28,48 +27,29 @@ const BOTTOM_NAV = [
 
 const MORE_SECTIONS = ['transactions', 'txhistory', 'settings', 'security', 'directions', 'privacy', 'disclaimer', 'terms']
 
-function AppShell() {
-  const { user, loading } = useAuth()
+/* ── Inner shell — only rendered after user is confirmed ── */
+function AppShellInner() {
   const { activeSection, setActiveSection } = useAppStore()
   const [showMore, setShowMore] = useState(false)
 
-  useEffect(() => {
-    try {
-      const t = localStorage.getItem('db_theme') || 'light'
-      document.documentElement.setAttribute('data-theme', t)
-    } catch { /* ignore */ }
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="loader-screen">
-        <div className="loader-logo">📦</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-bn)' }}>Digiboi</div>
-        <div className="loader-bar"><div className="loader-bar-fill" /></div>
-      </div>
-    )
-  }
-
-  if (!user) return <AuthScreen />
-
   const isMoreActive = MORE_SECTIONS.includes(activeSection)
-  // POS section needs different padding (no scroll padding, full-height layout)
   const isPOS = activeSection === 'pos'
 
   return (
     <div className="app-layout">
-      <div className="main-content" style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <Topbar />
         <main
           key={activeSection}
           style={{
             flex: 1,
             minHeight: 0,
-            overflowY: isPOS ? 'hidden' : 'auto',
+            overflowY: isPOS ? 'hidden' : 'scroll',
             WebkitOverflowScrolling: 'touch',
-            padding: isPOS ? 0 : '16px 16px calc(var(--nav-h) + 32px)',
             overscrollBehavior: 'contain',
-            animation: 'fade-up 0.3s cubic-bezier(0.16,1,0.3,1) both'
+            touchAction: isPOS ? 'none' : 'pan-y',
+            padding: isPOS ? 0 : '16px 16px calc(var(--nav-h) + env(safe-area-inset-bottom) + 32px)',
+            animation: 'fade-up 0.25s cubic-bezier(0.16,1,0.3,1) both',
           }}
         >
           {activeSection === 'dashboard'    && <DashboardSection />}
@@ -93,15 +73,17 @@ function AppShell() {
         {BOTTOM_NAV.map(item => {
           const Icon = item.icon
           const isActive = activeSection === item.id
-
           if (item.isCenter) {
             return (
               <div key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flex: 1 }}>
                 <button
                   className="nav-scan-btn"
                   onClick={() => setActiveSection(item.id)}
-                  style={{ background: isActive ? 'var(--success)' : undefined, boxShadow: isActive ? '0 6px 20px rgba(0,200,83,0.4)' : undefined }}
-                  aria-label="POS / Scan"
+                  style={{
+                    background: isActive ? 'var(--success)' : undefined,
+                    boxShadow: isActive ? '0 6px 20px rgba(0,200,83,0.4)' : undefined,
+                  }}
+                  aria-label="POS"
                 >
                   <Icon size={22} strokeWidth={2.5} />
                 </button>
@@ -109,26 +91,22 @@ function AppShell() {
               </div>
             )
           }
-
           return (
             <button key={item.id} className={`nav-item ${isActive ? 'active' : ''}`} onClick={() => setActiveSection(item.id)} aria-label={item.label}>
-              <div className="nav-item-icon">
-                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              </div>
+              <div className="nav-item-icon"><Icon size={20} strokeWidth={isActive ? 2.5 : 2} /></div>
               <span className="nav-item-label">{item.label}</span>
             </button>
           )
         })}
-
-        {/* More button (replaces 5th if needed) — add as 5th slot as reports, but keep a more in extra */}
-        {/* Note: the 5th slot is Reports — "more" is accessible via MoreMenu button on topbar */}
       </nav>
 
-      {/* More Menu floating button — positioned on LEFT to avoid POS scanner (right) overlap */}
+      {/* More button — LEFT side to avoid conflicts */}
       <button
         onClick={() => setShowMore(true)}
         style={{
-          position: 'fixed', bottom: 'calc(var(--nav-h) + 10px)', left: 12,
+          position: 'fixed',
+          bottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px)',
+          left: 12,
           width: 40, height: 40, borderRadius: 12,
           background: isMoreActive ? 'var(--primary)' : 'var(--surface)',
           border: `1.5px solid ${isMoreActive ? 'var(--primary)' : 'var(--border)'}`,
@@ -146,12 +124,34 @@ function AppShell() {
   )
 }
 
+/* ── Auth gate — keys AppProvider by user.id to reset all data on user change ── */
+function AuthGate() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="loader-screen">
+        <div className="loader-logo">📦</div>
+        <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-bn)' }}>Digiboi</div>
+        <div className="loader-bar"><div className="loader-bar-fill" /></div>
+      </div>
+    )
+  }
+
+  if (!user) return <AuthScreen />
+
+  // KEY = user.id → AppProvider remounts fresh when user switches (data isolation fix)
+  return (
+    <AppProvider key={user.id}>
+      <AppShellInner />
+    </AppProvider>
+  )
+}
+
 export default function Home() {
   return (
     <ToastProvider>
-      <AppProvider>
-        <AppShell />
-      </AppProvider>
+      <AuthGate />
     </ToastProvider>
   )
 }
