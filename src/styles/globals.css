@@ -289,11 +289,14 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
   max-width: 430px;
   /* Responsive height: never taller than screen */
   max-height: calc(96dvh - env(safe-area-inset-bottom));
-  overflow-y: scroll;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
   animation: sheet-up 0.32s cubic-bezier(0.16,1,0.3,1);
+  /* Ensure buttons always reachable */
+  display: flex;
+  flex-direction: column;
 }
 @keyframes sheet-up { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
