@@ -89,11 +89,6 @@ input[type="number"] { -moz-appearance: textfield; }
   background: var(--bg);
 }
 
-main, .pg, .modal-body, .scroll-area {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-}
-
 /* ── TOPBAR ── */
 .topbar {
   position: sticky; top: 0; z-index: 100;
@@ -227,10 +222,11 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
 .btn-full { width: 100%; }
 .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 10px; }
 
-/* ══════════════════════════════════════
-   MODAL — Responsive Bottom Sheet
-   Header + scrollable Body + sticky Footer
-══════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   MODAL SYSTEM
+   Bottom Sheet — header fixed, body scrolls,
+   footer always visible (Android Chrome safe)
+══════════════════════════════════════════════ */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -246,13 +242,17 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
 }
 @keyframes overlay-in { from{opacity:0} to{opacity:1} }
 
-/* Base modal — flex column, clips overflow */
 .modal {
   background: var(--surface);
   border-radius: 24px 24px 0 0;
   width: 100%;
   max-width: 430px;
-  max-height: 92dvh;
+  /*
+    Android Chrome has ~56px browser UI on top.
+    Total blocked: topbar(60) + browser-chrome(56) + safe-area ≈ 116px+
+    So usable = 100dvh - 116px. We use 78dvh as safe cap.
+  */
+  max-height: 78dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -260,44 +260,57 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
 }
 @keyframes sheet-up { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
-/* Sticky header — handle + title */
+/* Fixed top — drag handle + title */
 .modal-header {
   flex-shrink: 0;
-  padding: 12px 20px 10px;
+  padding: 10px 20px 12px;
   border-bottom: 1px solid var(--border);
 }
 
-/* Scrollable body */
+/* Scrollable middle — all form fields go here */
 .modal-body {
   flex: 1 1 0;
+  min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 16px 20px;
+  padding: 14px 20px;
 }
 
-/* Sticky footer — always visible */
+/* Fixed bottom — action buttons always visible */
 .modal-footer {
   flex-shrink: 0;
   display: flex;
   gap: 10px;
-  padding: 12px 20px;
-  padding-bottom: max(12px, calc(12px + env(safe-area-inset-bottom)));
+  padding: 10px 20px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
 
-/* Simple modal (short content, no sticky header/footer needed) */
+/* Short modals — payment, confirm (no header/footer split needed) */
 .modal-simple {
-  padding: 20px 20px;
-  padding-bottom: max(20px, calc(20px + env(safe-area-inset-bottom)));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  padding: 20px;
+  padding-bottom: max(20px, calc(16px + env(safe-area-inset-bottom, 0px)));
+  max-height: 65dvh;
 }
 
-.modal-handle { width: 36px; height: 4px; background: var(--border-strong); border-radius: 2px; margin: 0 auto 10px; }
-.modal-title { font-size: 1rem; font-weight: 700; color: var(--text); font-family: var(--font-bn); margin-bottom: 0; }
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--border-strong);
+  border-radius: 2px;
+  margin: 0 auto 10px;
+}
+.modal-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-bn);
+  margin-bottom: 0;
+}
 
 /* ── TOAST ── */
 .toast-wrap { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 8px; width: calc(100% - 32px); max-width: 400px; pointer-events: none; }
@@ -399,20 +412,13 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
 .text-primary { color:var(--primary); }
 .text-success { color:var(--success); }
 .text-danger { color:var(--danger); }
-.text-warning { color:var(--warning); }
-.fw-700 { font-weight:700; }
 .mono { font-family:var(--font-mono); }
 .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .divider { height:1px; background:var(--border); margin:12px 0; }
 
-.scroll-x { overflow-x: scroll; -webkit-overflow-scrolling: touch; scrollbar-width: none; white-space: nowrap; }
-.scroll-x::-webkit-scrollbar { display: none; }
-
 .skeleton { background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%); background-size:800px 100%; animation:shimmer 1.4s infinite linear; border-radius:8px; }
 
-@media (min-width: 431px) {
-  .app-layout { box-shadow: 0 0 60px rgba(0,0,0,0.15); }
-}
+@media (min-width: 431px) { .app-layout { box-shadow: 0 0 60px rgba(0,0,0,0.15); } }
 
 a, button, [role="button"], .product-card, .kpi-card, .list-item, .due-card {
   -webkit-tap-highlight-color: transparent;
