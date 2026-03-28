@@ -310,20 +310,23 @@ export default function POSSection() {
     <div style={{
       display:'flex', flexDirection:'column',
       height:'calc(100dvh - var(--topbar-h) - var(--nav-h) - env(safe-area-inset-bottom))',
-      overflow:'hidden', margin:'-16px', padding:0,
+      overflow:'hidden',
+      margin:'-16px',
+      width:'calc(100% + 32px)',
+      maxWidth:'none',
     }}>
       {showCamera && <CameraScanner onScan={handleBarcodeScan} onClose={()=>setShowCamera(false)}/>}
 
-      {/* ── Search Row — always fits, responsive ── */}
-      <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 10px 6px', flexShrink:0, background:'var(--bg)' }}>
-        {/* Search bar */}
-        <div style={{ flex:1, display:'flex', alignItems:'center', gap:8, background:'var(--surface2)', border:'1.5px solid var(--border)', borderRadius:12, padding:'0 12px', height:44, minWidth:0 }}>
-          <Search size={15} color="var(--text3)" style={{ flexShrink:0 }}/>
+      {/* ── Search Row — always fits, no overflow ── */}
+      <div style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 12px 6px', flexShrink:0, background:'var(--bg)', boxSizing:'border-box', width:'100%', overflow:'hidden' }}>
+        {/* Search bar — takes all remaining space */}
+        <div style={{ flex:'1 1 0', display:'flex', alignItems:'center', gap:7, background:'var(--surface2)', border:'1.5px solid var(--border)', borderRadius:12, padding:'0 10px', height:42, minWidth:0, overflow:'hidden' }}>
+          <Search size={14} color="var(--text3)" style={{ flexShrink:0 }}/>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="পণ্য খুঁজুন..."
-            style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'var(--text)', fontSize:'0.85rem', fontFamily:'var(--font-bn)', minWidth:0 }}
+            style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'var(--text)', fontSize:'0.83rem', fontFamily:'var(--font-bn)', minWidth:0, width:'100%' }}
             autoFocus
           />
           {search && (
@@ -331,23 +334,23 @@ export default function POSSection() {
           )}
         </div>
 
-        {/* Scan button */}
+        {/* Scan button — fixed size, never shrinks */}
         <button
           onClick={()=>setShowCamera(true)}
-          style={{ width:44, height:44, minWidth:44, borderRadius:12, background:'linear-gradient(135deg,var(--primary),var(--accent))', border:'none', display:'flex', alignItems:'center', justifyContent:'center', color:'white', cursor:'pointer', boxShadow:'0 4px 14px rgba(255,87,34,0.4)', flexShrink:0 }}
-          title="ক্যামেরা স্ক্যান — সরাসরি কার্টে যাবে"
+          style={{ width:42, height:42, minWidth:42, maxWidth:42, borderRadius:12, background:'linear-gradient(135deg,var(--primary),var(--accent))', border:'none', display:'flex', alignItems:'center', justifyContent:'center', color:'white', cursor:'pointer', flexShrink:0 }}
+          title="ক্যামেরা স্ক্যান"
         >
-          <Camera size={18}/>
+          <Camera size={17}/>
         </button>
 
-        {/* Cart button */}
+        {/* Cart button — fixed size, never shrinks */}
         <button
           onClick={()=>setShowCart(true)}
-          style={{ position:'relative', width:44, height:44, minWidth:44, borderRadius:12, background:cartCount>0?'linear-gradient(135deg,#1a73e8,#0d47a1)':'var(--surface3)', border:cartCount>0?'none':'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', color:cartCount>0?'white':'var(--text3)', cursor:'pointer', boxShadow:cartCount>0?'0 4px 14px rgba(26,115,232,0.4)':'none', flexShrink:0 }}
+          style={{ position:'relative', width:42, height:42, minWidth:42, maxWidth:42, borderRadius:12, background:cartCount>0?'linear-gradient(135deg,#1a73e8,#0d47a1)':'var(--surface3)', border:cartCount>0?'none':'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', color:cartCount>0?'white':'var(--text3)', cursor:'pointer', flexShrink:0 }}
         >
-          <ShoppingCart size={18}/>
+          <ShoppingCart size={17}/>
           {cartCount > 0 && (
-            <span style={{ position:'absolute', top:-6, right:-6, width:20, height:20, background:'var(--danger)', borderRadius:'50%', color:'white', fontSize:'0.62rem', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid var(--bg)' }}>{cartCount}</span>
+            <span style={{ position:'absolute', top:-5, right:-5, width:18, height:18, background:'var(--danger)', borderRadius:'50%', color:'white', fontSize:'0.58rem', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid var(--bg)' }}>{cartCount}</span>
           )}
         </button>
       </div>

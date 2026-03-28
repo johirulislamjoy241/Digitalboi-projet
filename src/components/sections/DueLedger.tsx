@@ -24,9 +24,10 @@ function BuyerProfileSheet({ buyer, dueLedger, fmt, onClose }: {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()} style={{ maxHeight: '94dvh', overflowY: 'auto' }}>
-        <div className="modal-handle" />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-handle"/>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop:8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--info-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>👤</div>
             <div>
@@ -36,6 +37,8 @@ function BuyerProfileSheet({ buyer, dueLedger, fmt, onClose }: {
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer' }}><X size={18} /></button>
         </div>
+        </div>
+        <div className="modal-body">
 
         {/* Contact info */}
         <div style={{ background: 'var(--surface2)', borderRadius: 14, padding: 14, marginBottom: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -134,7 +137,10 @@ function BuyerProfileSheet({ buyer, dueLedger, fmt, onClose }: {
           )}
         </div>
 
-        <button className="btn btn-ghost btn-full" style={{ marginTop: 14 }} onClick={onClose}>বন্ধ করুন</button>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" style={{ flex:1 }} onClick={onClose}>বন্ধ করুন</button>
+        </div>
       </div>
     </div>
   )
@@ -398,20 +404,19 @@ export default function DueLedgerSection() {
       {/* ── ADD DUE MODAL — Responsive ── */}
       {modal === 'add' && (
         <div className="modal-overlay" onClick={()=>setModal(null)}>
-          <div className="modal" onClick={e=>e.stopPropagation()}
-            style={{ maxHeight:'calc(96dvh - env(safe-area-inset-bottom))', overflowY:'hidden', display:'flex', flexDirection:'column', padding:0 }}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
 
             {/* Header */}
-            <div style={{ padding:'16px 20px 12px', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
-              <div className="modal-handle" style={{ marginBottom:12 }}/>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                <div className="modal-title" style={{ marginBottom:0 }}>📝 নতুন বকেয়া যোগ</div>
-                <button onClick={()=>setModal(null)} style={{ background:'none', border:'none', color:'var(--text3)', cursor:'pointer', padding:4 }}><X size={20}/></button>
+            <div className="modal-header">
+              <div className="modal-handle"/>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:8 }}>
+                <span className="modal-title" style={{ marginBottom:0 }}>📝 নতুন বকেয়া যোগ</span>
+                <button onClick={()=>setModal(null)} style={{ background:'none', border:'none', color:'var(--text3)', cursor:'pointer', padding:4, flexShrink:0 }}><X size={20}/></button>
               </div>
             </div>
 
             {/* Scrollable body */}
-            <div style={{ flex:1, overflowY:'auto', padding:'16px 20px', WebkitOverflowScrolling:'touch' }}>
+            <div className="modal-body">
               {/* Buyer Select */}
               <div className="input-group">
                 <label className="input-label">ক্রেতা নির্বাচন *</label>
@@ -502,10 +507,11 @@ export default function DueLedgerSection() {
             </div>
 
             {/* Fixed footer */}
-            <div style={{ display:'flex', gap:10, padding:'12px 20px calc(12px + env(safe-area-inset-bottom))', borderTop:'1px solid var(--border)', background:'var(--surface)', flexShrink:0 }}>
+            </div>
+            <div className="modal-footer">
               <button className="btn btn-ghost" style={{ flex:1 }} onClick={()=>setModal(null)}>বাতিল</button>
               <button className="btn btn-primary" style={{ flex:2 }} onClick={addDue} disabled={saving}>
-                {saving ? 'সংরক্ষণ হচ্ছে...' : '✅ বকেয়া যোগ করুন'}
+                {saving ? 'সংরক্ষণ...' : '✅ বকেয়া যোগ করুন'}
               </button>
             </div>
           </div>
@@ -515,7 +521,7 @@ export default function DueLedgerSection() {
       {/* ── PAYMENT MODAL ── */}
       {modal === 'payment' && editEntry && (
         <div className="modal-overlay" onClick={()=>setModal(null)}>
-          <div className="modal" onClick={e=>e.stopPropagation()}>
+          <div className="modal modal-simple" onClick={e=>e.stopPropagation()}>
             <div className="modal-handle"/>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
               <div className="modal-title" style={{ marginBottom:0 }}>💳 পেমেন্ট গ্রহণ</div>
@@ -547,20 +553,19 @@ export default function DueLedgerSection() {
       {/* ── ADD BUYER MODAL — Responsive ── */}
       {modal === 'buyer' && (
         <div className="modal-overlay" onClick={()=>setModal(null)}>
-          <div className="modal" onClick={e=>e.stopPropagation()}
-            style={{ maxHeight:'calc(96dvh - env(safe-area-inset-bottom))', overflowY:'hidden', display:'flex', flexDirection:'column', padding:0 }}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
 
             {/* Header */}
-            <div style={{ padding:'16px 20px 12px', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
-              <div className="modal-handle" style={{ marginBottom:12 }}/>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                <div className="modal-title" style={{ marginBottom:0 }}>👤 নতুন ক্রেতা যোগ</div>
-                <button onClick={()=>setModal(null)} style={{ background:'none', border:'none', color:'var(--text3)', cursor:'pointer', padding:4 }}><X size={20}/></button>
+            <div className="modal-header">
+              <div className="modal-handle"/>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:8 }}>
+                <span className="modal-title" style={{ marginBottom:0 }}>👤 নতুন ক্রেতা যোগ</span>
+                <button onClick={()=>setModal(null)} style={{ background:'none', border:'none', color:'var(--text3)', cursor:'pointer', padding:4, flexShrink:0 }}><X size={20}/></button>
               </div>
             </div>
 
             {/* Scrollable body */}
-            <div style={{ flex:1, overflowY:'auto', padding:'16px 20px', WebkitOverflowScrolling:'touch' }}>
+            <div className="modal-body">
               <div className="input-group">
                 <label className="input-label">নাম *</label>
                 <input className="input" placeholder="ক্রেতার পুরো নাম" value={buyerForm.name} onChange={e=>setBuyerForm(f=>({...f,name:e.target.value}))} autoFocus/>
@@ -584,7 +589,8 @@ export default function DueLedgerSection() {
             </div>
 
             {/* Fixed footer */}
-            <div style={{ display:'flex', gap:10, padding:'12px 20px calc(12px + env(safe-area-inset-bottom))', borderTop:'1px solid var(--border)', background:'var(--surface)', flexShrink:0 }}>
+            </div>
+            <div className="modal-footer">
               <button className="btn btn-ghost" style={{ flex:1 }} onClick={()=>setModal(null)}>বাতিল</button>
               <button className="btn btn-primary" style={{ flex:2 }} onClick={addBuyer} disabled={saving}>
                 {saving ? 'সংরক্ষণ...' : '✅ ক্রেতা যোগ করুন'}

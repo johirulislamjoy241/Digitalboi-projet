@@ -287,16 +287,48 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
   border-radius: 24px 24px 0 0;
   width: 100%;
   max-width: 430px;
-  /* Responsive height: never taller than screen */
-  max-height: calc(96dvh - env(safe-area-inset-bottom));
+  /* Never taller than viewport */
+  max-height: 92dvh;
+  /* Flex column so header/footer stick, body scrolls */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: sheet-up 0.32s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Simple modals (payment, barcode view) keep their own padding via .modal-simple */
+.modal-simple {
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
-  animation: sheet-up 0.32s cubic-bezier(0.16,1,0.3,1);
-  /* Ensure buttons always reachable */
+}
+
+/* Header strip inside modal */
+.modal-header {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* Scrollable body inside modal */
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 16px 20px;
+}
+
+/* Footer strip with action buttons */
+.modal-footer {
   display: flex;
-  flex-direction: column;
+  gap: 10px;
+  padding: 12px 20px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
 }
 @keyframes sheet-up { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
