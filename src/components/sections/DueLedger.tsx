@@ -546,7 +546,7 @@ export default function DueLedgerSection() {
       {/* ══ PAYMENT MODAL ══ */}
       {modal === 'payment' && editEntry && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div className="modal-sm" onClick={e => e.stopPropagation()}>
+          <div className="modal modal-simple" onClick={e => e.stopPropagation()}>
             <div className="modal-handle" />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <span className="modal-title">💳 পেমেন্ট গ্রহণ</span>
