@@ -3,9 +3,13 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useAppStore } from '@/lib/app-store'
 import { useToast } from '@/lib/toast-context'
-import { Bell, Sun, Moon, Package } from 'lucide-react'
+import { Bell, Sun, Moon, Package, Menu } from 'lucide-react'
 
-export default function Topbar() {
+interface TopbarProps {
+  onHamburgerClick?: () => void
+}
+
+export default function Topbar({ onHamburgerClick }: TopbarProps) {
   const { user } = useAuth()
   const { theme, setTheme, inventory } = useAppStore()
   const { toast } = useToast()
@@ -25,6 +29,17 @@ export default function Topbar() {
   return (
     <>
       <header className="topbar">
+        {/* Hamburger — only visible on mobile via CSS */}
+        {onHamburgerClick && (
+          <button
+            className="topbar-hamburger"
+            onClick={onHamburgerClick}
+            aria-label="মেনু"
+          >
+            <Menu size={18} />
+          </button>
+        )}
+
         <div className="topbar-logo">
           <div className="topbar-logo-icon">📦</div>
           <div className="topbar-brand">
@@ -32,19 +47,20 @@ export default function Topbar() {
             {user && <span className="topbar-brand-shop">{user.shop_name}</span>}
           </div>
         </div>
+
         <div className="topbar-actions">
           <button className="topbar-btn" onClick={toggleTheme} title="থিম পরিবর্তন">
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-          <button className="topbar-btn" onClick={() => { setShowNotif(v => !v); setShowProfile(false) }}>
+          <button className="topbar-btn" onClick={() => { setShowNotif(v => !v); setShowProfile(false) }} aria-label="নোটিফিকেশন">
             <Bell size={16} />
             {hasNotif && <span className="notif-dot" />}
           </button>
-          <div className="topbar-avatar" onClick={() => { setShowProfile(v => !v); setShowNotif(false) }}>{av}</div>
+          <div className="topbar-avatar" onClick={() => { setShowProfile(v => !v); setShowNotif(false) }} role="button" aria-label="প্রোফাইল">{av}</div>
         </div>
       </header>
 
-      {/* Notification Popup — uses .notif-popup class for responsive positioning */}
+      {/* Notification Popup */}
       {showNotif && (
         <>
           <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 350, background: 'transparent' }} />
@@ -78,18 +94,20 @@ export default function Topbar() {
         <div className="modal-overlay" onClick={() => setShowProfile(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-handle" />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, var(--primary), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.3rem', fontWeight: 700, boxShadow: 'var(--shadow-primary)', flexShrink: 0 }}>{av}</div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', fontFamily: 'var(--font-bn)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.shop_name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)' }}>{user?.owner_name}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginTop: 2 }}>{user?.phone}</div>
+            <div style={{ padding: '0 20px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, var(--primary), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.3rem', fontWeight: 700, boxShadow: 'var(--shadow-primary)', flexShrink: 0 }}>{av}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', fontFamily: 'var(--font-bn)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.shop_name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)' }}>{user?.owner_name}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginTop: 2 }}>{user?.phone}</div>
+                </div>
               </div>
+              <div className="info-row"><span className="info-key">মোট পণ্য</span><span className="info-val">{inventory.length} টি</span></div>
+              <div className="info-row"><span className="info-key">লো স্টক</span><span className="info-val" style={{ color: lowStock.length > 0 ? 'var(--danger)' : 'var(--success)' }}>{lowStock.length} টি</span></div>
+              <div className="info-row"><span className="info-key">থিম</span><span className="info-val">{theme === 'dark' ? '🌙 ডার্ক' : '☀️ লাইট'}</span></div>
+              <button className="btn btn-ghost btn-full" style={{ marginTop: 16 }} onClick={() => setShowProfile(false)}>বন্ধ করুন</button>
             </div>
-            <div className="info-row"><span className="info-key">মোট পণ্য</span><span className="info-val">{inventory.length} টি</span></div>
-            <div className="info-row"><span className="info-key">লো স্টক</span><span className="info-val" style={{ color: lowStock.length > 0 ? 'var(--danger)' : 'var(--success)' }}>{lowStock.length} টি</span></div>
-            <div className="info-row"><span className="info-key">থিম</span><span className="info-val">{theme === 'dark' ? '🌙 ডার্ক' : '☀️ লাইট'}</span></div>
-            <button className="btn btn-ghost btn-full" style={{ marginTop: 16 }} onClick={() => setShowProfile(false)}>বন্ধ করুন</button>
           </div>
         </div>
       )}
