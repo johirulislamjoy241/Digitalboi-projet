@@ -336,7 +336,7 @@ export default function POSSection() {
       </div>
 
       {/* ── Product Grid ── */}
-      <div style={{ flex: 1, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: '6px 16px 100px' }}>
+      <div style={{ flex: 1, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: '6px 16px', paddingBottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 80px)' }}>
         {filtered.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🔍</div>
@@ -370,7 +370,8 @@ export default function POSSection() {
       {count > 0 && !showCart && (
         <div
           onClick={() => setShowCart(true)}
-          style={{ position: 'fixed', bottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 12px)', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 32px)', maxWidth: 380, background: 'linear-gradient(135deg,var(--primary),var(--accent))', borderRadius: 16, padding: '13px 16px', boxShadow: '0 8px 24px rgba(255,87,34,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 140, cursor: 'pointer' }}
+          className="pos-cart-bar"
+          style={{ bottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 12px)', background: 'linear-gradient(135deg,var(--primary),var(--accent))', borderRadius: 16, padding: '13px 16px', boxShadow: '0 8px 24px rgba(255,87,34,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 140, cursor: 'pointer' }}
         >
           <div style={{ color: 'white' }}>
             <div style={{ fontSize: '0.68rem', opacity: 0.85, fontFamily: 'var(--font-bn)' }}>কার্টে {count} পণ্য</div>

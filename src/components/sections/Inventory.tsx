@@ -58,7 +58,7 @@ function Barcode({ val }:{ val:string }) {
 function QRSheet({ item, fmt, onClose }:{ item:InventoryItem; fmt:(v:number)=>string; onClose:()=>void }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e=>e.stopPropagation()}>
+      <div className="modal modal-qr" onClick={e=>e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-handle"/>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
