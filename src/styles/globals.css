@@ -115,22 +115,21 @@ input[type="number"] { -moz-appearance: textfield; }
 .topbar-avatar { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 8px rgba(255,87,34,0.3); transition: transform 0.2s; -webkit-tap-highlight-color: transparent; }
 .topbar-avatar:active { transform: scale(0.92); }
 
+/* ── NOTIFICATION POPUP ── */
 .notif-popup {
   position: fixed;
-  /* Sit just below topbar */
   top: calc(var(--topbar-h) + 6px);
-  /* Always centered within the app's 430px column */
   left: 50%;
   transform: translateX(-50%);
   width: calc(100vw - 24px);
   max-width: 406px;
   background: var(--surface);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
   z-index: 600;
   border: 1px solid var(--border);
-  animation: fade-up 0.22s cubic-bezier(0.16,1,0.3,1) both;
-  max-height: 70vh;
+  animation: fade-up 0.2s cubic-bezier(0.16,1,0.3,1) both;
+  max-height: calc(100dvh - var(--topbar-h) - 80px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -228,17 +227,24 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
 .btn-full { width: 100%; }
 .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 10px; }
 
-/* ══════════════════════════════════════════════
-   MODAL SYSTEM — BOTTOM SHEET
-   Works correctly on Android Chrome mobile browser.
-   KEY: dvh already excludes browser chrome bars.
-   Modal width capped at 430px to match app-layout.
-══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   MODAL SYSTEM — BOTTOM SHEET (Mobile + Desktop)
+   
+   HOW IT WORKS:
+   • .modal-overlay = full-screen dark backdrop (fixed)
+   • .modal = white sheet, slides up from bottom
+   • .modal-header = always visible at top (handle + title)
+   • .modal-body = scrollable content area
+   • .modal-footer = always visible at bottom (buttons)
+   
+   KEY: max-height uses calc() to leave room for topbar
+   and bottom nav so content is never hidden behind them.
+══════════════════════════════════════════════════ */
+
 .modal-overlay {
-  /* absolute inside .app-layout so it stays within the 430px container */
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.65);
+  background: rgba(0,0,0,0.6);
   z-index: 500;
   display: flex;
   align-items: flex-end;
@@ -246,6 +252,8 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
   animation: overlay-in 0.18s ease;
   overscroll-behavior: none;
   touch-action: none;
+  /* Padding-bottom = nav height, so modal stops above nav */
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
 }
 @keyframes overlay-in { from{opacity:0} to{opacity:1} }
 
@@ -255,12 +263,14 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
   width: 100%;
   max-width: 430px;
   /*
-    Use a fixed px height so Android Chrome doesn't clip.
-    calc: screen height minus topbar(60) minus nav(64) minus safe areas.
-    85vh is safe on all Android Chrome versions.
+    Max height = full viewport
+    minus topbar (60px)
+    minus nav (64px)
+    minus safe areas
+    minus a small gap (8px) so topbar is visible
+    Result: modal never hides behind topbar or nav
   */
-  height: 85vh;
-  max-height: 85vh;
+  max-height: calc(100dvh - var(--topbar-h) - var(--nav-h) - env(safe-area-inset-bottom, 0px) - 8px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -268,7 +278,7 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
 }
 @keyframes sheet-up { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
-/* Fixed top — handle + title, never scrolls */
+/* Always visible top — drag handle + title */
 .modal-header {
   flex-shrink: 0;
   padding: 10px 20px 12px;
@@ -276,40 +286,37 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
   background: var(--surface);
 }
 
-/* Scrollable middle — form fields scroll here */
+/* Scrollable middle — all form content goes here */
 .modal-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 16px 20px;
-  /* extra bottom so last field not hidden by footer */
-  padding-bottom: 24px;
+  padding: 16px 20px 20px;
 }
 
-/* Fixed bottom — action buttons, always visible */
+/* Always visible bottom — action buttons */
 .modal-footer {
   flex-shrink: 0;
   display: flex;
   gap: 10px;
   padding: 12px 20px;
-  padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
 
-/* Short modals — payment/confirm, simpler layout */
+/* Short modals (payment, confirm) — no header/footer split */
 .modal-simple {
   background: var(--surface);
   border-radius: 22px 22px 0 0;
   width: 100%;
   max-width: 430px;
-  max-height: 70vh;
+  max-height: calc(100dvh - var(--topbar-h) - var(--nav-h) - env(safe-area-inset-bottom, 0px) - 8px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   padding: 20px;
-  padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
   animation: sheet-up 0.28s cubic-bezier(0.16,1,0.3,1);
 }
 
@@ -433,29 +440,24 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
 
 .skeleton { background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%); background-size:800px 100%; animation:shimmer 1.4s infinite linear; border-radius:8px; }
 
-@media (min-width: 431px) { .app-layout { box-shadow: 0 0 60px rgba(0,0,0,0.15); } }
+/* ── POS floating cart bar ── */
+.pos-cart-bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(min(100vw, 430px) - 32px);
+  max-width: 398px;
+}
 
 /* ══════════════════════════════════════════════
-   BROWSER / WIDE-SCREEN RESPONSIVE FIXES
-   Only when viewport > 430px (true desktop/tablet)
+   DESKTOP / WIDE-SCREEN (viewport > 430px)
+   App column is centered; modal stays bottom-sheet
+   style but positioned correctly within the column.
 ══════════════════════════════════════════════ */
 @media (min-width: 431px) {
+  .app-layout { box-shadow: 0 0 60px rgba(0,0,0,0.15); }
 
-  /* Modal stays as bottom-sheet but centered in viewport */
-  .modal-overlay {
-    align-items: flex-end;
-    justify-content: center;
-  }
-
-  /* On wide screens modal is still max 430px wide, centered */
-  .modal {
-    border-radius: 22px 22px 0 0;
-    max-width: 430px;
-    height: 85vh;
-    max-height: 85vh;
-  }
-
-  /* Notif popup: right-aligned under bell within app bounds */
+  /* Notif popup stays within app column, right-aligned */
   .notif-popup {
     left: auto;
     transform: none;
@@ -464,20 +466,6 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
     max-width: 320px;
   }
 }
-
-/* ── POS floating cart bar: constrained to app width ── */
-.pos-cart-bar {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(min(100vw, 430px) - 32px);
-  max-width: 398px;
-}/* ── QR modal body: allow full content show ── */
-.modal-qr .modal-body {
-  overflow-y: auto;
-}
-
-
 
 a, button, [role="button"], .product-card, .kpi-card, .list-item, .due-card {
   -webkit-tap-highlight-color: transparent;
