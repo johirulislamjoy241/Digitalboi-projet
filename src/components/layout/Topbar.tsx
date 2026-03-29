@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useAppStore } from '@/lib/app-store'
 import { useToast } from '@/lib/toast-context'
-import { Bell, Sun, Moon, Package } from 'lucide-react'
+import { Bell, Sun, Moon, Package, X } from 'lucide-react'
 
 export default function Topbar() {
   const { user } = useAuth()
@@ -44,21 +44,22 @@ export default function Topbar() {
         </div>
       </header>
 
-      {/* Notification Popup — uses .notif-popup class for responsive positioning */}
+      {/* Notification Popup */}
       {showNotif && (
         <>
-          <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 350, background: 'transparent' }} />
+          <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 590, background: 'transparent' }} />
           <div className="notif-popup">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexShrink: 0, padding: '16px 16px 0' }}>
-              <span className="section-title">🔔 সতর্কতা</span>
-              <button className="btn btn-ghost btn-xs" onClick={() => setShowNotif(false)}>✕</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', fontFamily: 'var(--font-bn)' }}>🔔 সতর্কতা</span>
+              <button onClick={() => setShowNotif(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, borderRadius: 8, display: 'flex', alignItems: 'center' }}>
+                <X size={16} />
+              </button>
             </div>
-            <div style={{ padding: '0 16px 16px' }}>
             {lowStock.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--text3)', fontFamily: 'var(--font-bn)', fontSize: '0.82rem' }}>✅ সব ঠিক আছে</div>
+              <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text3)', fontFamily: 'var(--font-bn)', fontSize: '0.82rem' }}>✅ সব ঠিক আছে</div>
             ) : lowStock.map(item => (
               <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ width: 38, height: 38, borderRadius: 10, background: item.status === 'Out of Stock' ? 'var(--danger-light)' : 'var(--warning-light)', color: item.status === 'Out of Stock' ? 'var(--danger)' : 'var(--warning)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: item.status === 'Out of Stock' ? 'var(--danger-light)' : 'var(--warning-light)', color: item.status === 'Out of Stock' ? 'var(--danger)' : 'var(--warning)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Package size={16} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -70,7 +71,6 @@ export default function Topbar() {
                 </span>
               </div>
             ))}
-            </div>
           </div>
         </>
       )}
@@ -81,7 +81,10 @@ export default function Topbar() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-handle" />
-              <span className="modal-title">👤 প্রোফাইল</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="modal-title">👤 প্রোফাইল</span>
+                <button onClick={() => setShowProfile(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer' }}><X size={18} /></button>
+              </div>
             </div>
             <div className="modal-body">
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>

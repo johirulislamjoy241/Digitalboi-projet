@@ -117,24 +117,24 @@ input[type="number"] { -moz-appearance: textfield; }
 
 .notif-popup {
   position: fixed;
+  /* Sit just below topbar */
   top: calc(var(--topbar-h) + 6px);
-  /* Center within the 430px app-layout, not full viewport */
+  /* Always centered within the app's 430px column */
   left: 50%;
   transform: translateX(-50%);
-  /* Width = app width minus padding, capped */
-  width: calc(min(100vw, 430px) - 24px);
+  width: calc(100vw - 24px);
   max-width: 406px;
   background: var(--surface);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
-  z-index: 400;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  z-index: 600;
   border: 1px solid var(--border);
   animation: fade-up 0.22s cubic-bezier(0.16,1,0.3,1) both;
-  max-height: calc(100dvh - var(--topbar-h) - 80px);
+  max-height: 70vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 0;
+  padding: 14px 16px;
 }
 
 /* ── BOTTOM NAV ── */
@@ -235,16 +235,15 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
    Modal width capped at 430px to match app-layout.
 ══════════════════════════════════════════════ */
 .modal-overlay {
+  /* absolute inside .app-layout so it stays within the 430px container */
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.65);
   z-index: 500;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  animation: overlay-in 0.2s ease;
+  animation: overlay-in 0.18s ease;
   overscroll-behavior: none;
   touch-action: none;
 }
@@ -256,55 +255,62 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
   width: 100%;
   max-width: 430px;
   /*
-    dvh = dynamic viewport height → already excludes Android Chrome UI.
-    82dvh gives enough room for all content + footer button visible.
+    Use a fixed px height so Android Chrome doesn't clip.
+    calc: screen height minus topbar(60) minus nav(64) minus safe areas.
+    85vh is safe on all Android Chrome versions.
   */
-  max-height: 82dvh;
+  height: 85vh;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: sheet-up 0.28s cubic-bezier(0.16,1,0.3,1);
-  margin-bottom: env(safe-area-inset-bottom, 0px);
 }
 @keyframes sheet-up { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
-/* Fixed top — drag handle + title */
+/* Fixed top — handle + title, never scrolls */
 .modal-header {
   flex-shrink: 0;
   padding: 10px 20px 12px;
   border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 
-/* Scrollable middle — ALL form fields go here */
+/* Scrollable middle — form fields scroll here */
 .modal-body {
-  flex: 1 1 0;
-  min-height: 0;
+  flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 14px 20px;
+  padding: 16px 20px;
+  /* extra bottom so last field not hidden by footer */
+  padding-bottom: 24px;
 }
 
-/* Fixed bottom — action buttons always visible */
+/* Fixed bottom — action buttons, always visible */
 .modal-footer {
   flex-shrink: 0;
   display: flex;
   gap: 10px;
   padding: 12px 20px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+  padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
 
-/* Short modals — payment, confirm (no header/footer split) */
+/* Short modals — payment/confirm, simpler layout */
 .modal-simple {
+  background: var(--surface);
+  border-radius: 22px 22px 0 0;
+  width: 100%;
+  max-width: 430px;
+  max-height: 70vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   padding: 20px;
-  padding-bottom: max(20px, calc(16px + env(safe-area-inset-bottom, 0px)));
-  max-height: 72dvh;
-  margin-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
+  animation: sheet-up 0.28s cubic-bezier(0.16,1,0.3,1);
 }
 
 .modal-handle {
@@ -435,28 +441,19 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
 ══════════════════════════════════════════════ */
 @media (min-width: 431px) {
 
-  /* ── Modal: centered dialog on desktop ── */
+  /* Modal stays as bottom-sheet but centered in viewport */
   .modal-overlay {
-    align-items: center;
+    align-items: flex-end;
+    justify-content: center;
   }
 
+  /* On wide screens modal is still max 430px wide, centered */
   .modal {
-    border-radius: 20px;
-    max-height: 88vh;
-    max-width: 460px;
-    animation: modal-pop 0.25s cubic-bezier(0.34,1.4,0.64,1);
-    margin-bottom: 0;
+    border-radius: 22px 22px 0 0;
+    max-width: 430px;
+    height: 85vh;
+    max-height: 85vh;
   }
-
-  .modal-simple {
-    border-radius: 20px;
-    max-height: 80vh;
-    max-width: 460px;
-    margin-bottom: 0;
-  }
-
-  /* Drag handle not needed on desktop */
-  .modal-handle { display: none; }
 
   /* Notif popup: right-aligned under bell within app bounds */
   .notif-popup {
@@ -466,11 +463,6 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
     width: 320px;
     max-width: 320px;
   }
-}
-
-@keyframes modal-pop {
-  from { opacity: 0; transform: scale(0.92) translateY(12px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 /* ── POS floating cart bar: constrained to app width ── */
