@@ -274,23 +274,19 @@ export default function POSSection() {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
-      /* exact height = viewport minus topbar and nav */
+      /* full height within the scrollable main area */
       height: 'calc(100dvh - var(--topbar-h) - var(--nav-h) - env(safe-area-inset-bottom, 0px))',
       overflow: 'hidden',
-      /* cancel parent padding (page has 16px padding) */
-      margin: '-16px',
+      /* page.tsx already sets padding:0 for POS, no negative margin needed */
     }}>
       {showCam && <CameraScanner onScan={onScan} onClose={() => setShowCam(false)} />}
 
-      {/* ── Search Row ──
-          Uses a normal block layout with padding so no overflow tricks needed.
-          All three elements (search, scan btn, cart btn) are in a flex row
-          with the search bar taking flex:1 and buttons being fixed 42px. */}
+      {/* ── Search Row ── */}
       <div style={{
         flexShrink: 0,
         background: 'var(--bg)',
-        /* Padding compensates for the -16px margin above */
         padding: '8px 16px 6px',
+        borderBottom: '1px solid var(--border)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Search input */}

@@ -36,37 +36,42 @@ export default function MoreMenu({ onClose }: Props) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-handle" />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <span className="modal-title" style={{ marginBottom: 0 }}>আরো বিকল্প</span>
-          <button className="btn btn-ghost btn-xs" onClick={onClose}><X size={14} /></button>
+        <div className="modal-header">
+          <div className="modal-handle" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="modal-title">আরো বিকল্প</span>
+            <button className="btn btn-ghost btn-xs" onClick={onClose}><X size={14} /></button>
+          </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {MENU_ITEMS.map(item => {
-            const Icon = item.icon
-            return (
-              <button
-                key={item.id}
-                onClick={() => go(item.id)}
-                style={{
-                  background: 'var(--surface2)', border: '1px solid var(--border)',
-                  borderRadius: 14, padding: '14px 12px',
-                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8,
-                  cursor: 'pointer', transition: 'all 0.2s'
-                }}
-              >
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: item.bg, color: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon size={18} />
-                </div>
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-bn)' }}>{item.label}</span>
-              </button>
-            )
-          })}
+        <div className="modal-body">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {MENU_ITEMS.map(item => {
+              const Icon = item.icon
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => go(item.id)}
+                  style={{
+                    background: 'var(--surface2)', border: '1px solid var(--border)',
+                    borderRadius: 14, padding: '14px 12px',
+                    display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8,
+                    cursor: 'pointer', transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: item.bg, color: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon size={18} />
+                  </div>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-bn)' }}>{item.label}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
-        <div className="divider" style={{ margin: '16px 0' }} />
-        <button className="btn btn-danger btn-full" onClick={doLogout}>
-          <LogOut size={16} /> সাইন আউট
-        </button>
+        <div className="modal-footer">
+          <button className="btn btn-danger btn-full" onClick={doLogout}>
+            <LogOut size={16} /> সাইন আউট
+          </button>
+        </div>
       </div>
     </div>
   )

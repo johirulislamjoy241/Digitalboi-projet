@@ -79,19 +79,26 @@ export default function Topbar() {
       {showProfile && (
         <div className="modal-overlay" onClick={() => setShowProfile(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-handle" />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, var(--primary), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.3rem', fontWeight: 700, boxShadow: 'var(--shadow-primary)', flexShrink: 0 }}>{av}</div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', fontFamily: 'var(--font-bn)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.shop_name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)' }}>{user?.owner_name}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginTop: 2 }}>{user?.phone}</div>
-              </div>
+            <div className="modal-header">
+              <div className="modal-handle" />
+              <span className="modal-title">👤 প্রোফাইল</span>
             </div>
-            <div className="info-row"><span className="info-key">মোট পণ্য</span><span className="info-val">{inventory.length} টি</span></div>
-            <div className="info-row"><span className="info-key">লো স্টক</span><span className="info-val" style={{ color: lowStock.length > 0 ? 'var(--danger)' : 'var(--success)' }}>{lowStock.length} টি</span></div>
-            <div className="info-row"><span className="info-key">থিম</span><span className="info-val">{theme === 'dark' ? '🌙 ডার্ক' : '☀️ লাইট'}</span></div>
-            <button className="btn btn-ghost btn-full" style={{ marginTop: 16 }} onClick={() => setShowProfile(false)}>বন্ধ করুন</button>
+            <div className="modal-body">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, var(--primary), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.3rem', fontWeight: 700, boxShadow: 'var(--shadow-primary)', flexShrink: 0 }}>{av}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', fontFamily: 'var(--font-bn)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.shop_name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)' }}>{user?.owner_name}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginTop: 2 }}>{user?.phone}</div>
+                </div>
+              </div>
+              <div className="info-row"><span className="info-key">মোট পণ্য</span><span className="info-val">{inventory.length} টি</span></div>
+              <div className="info-row"><span className="info-key">লো স্টক</span><span className="info-val" style={{ color: lowStock.length > 0 ? 'var(--danger)' : 'var(--success)' }}>{lowStock.length} টি</span></div>
+              <div className="info-row"><span className="info-key">থিম</span><span className="info-val">{theme === 'dark' ? '🌙 ডার্ক' : '☀️ লাইট'}</span></div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost btn-full" onClick={() => setShowProfile(false)}>বন্ধ করুন</button>
+            </div>
           </div>
         </div>
       )}
