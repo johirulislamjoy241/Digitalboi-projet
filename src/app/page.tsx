@@ -15,62 +15,103 @@ import DueLedgerSection from '@/components/sections/DueLedger'
 import ReportsSection from '@/components/sections/Reports'
 import SettingsSection from '@/components/sections/Settings'
 import { SecuritySection, HelpSection, PrivacySection, DisclaimerSection, TermsSection } from '@/components/sections/StaticSections'
-import { Home as HomeIcon, Package, ScanLine, BookOpen, BarChart2, MoreHorizontal } from 'lucide-react'
+import {
+  Home as HomeIcon, Package, ScanLine, BookOpen, BarChart2,
+  MoreHorizontal, ArrowLeftRight, History, Settings, Shield,
+  HelpCircle, Lock, FileText, AlertCircle
+} from 'lucide-react'
 
-const BOTTOM_NAV = [
-  { id: 'dashboard' as ActiveSection, icon: HomeIcon, label: 'হোম' },
-  { id: 'inventory' as ActiveSection, icon: Package, label: 'পণ্য' },
-  { id: 'pos' as ActiveSection, icon: ScanLine, label: 'POS', isCenter: true },
-  { id: 'dueledger' as ActiveSection, icon: BookOpen, label: 'বকেয়া' },
-  { id: 'reports' as ActiveSection, icon: BarChart2, label: 'রিপোর্ট' },
+const MAIN_NAV: { id: ActiveSection; icon: any; label: string; isCenter?: boolean }[] = [
+  { id: 'dashboard',  icon: HomeIcon,   label: 'হোম' },
+  { id: 'inventory',  icon: Package,    label: 'পণ্য' },
+  { id: 'pos',        icon: ScanLine,   label: 'POS', isCenter: true },
+  { id: 'dueledger',  icon: BookOpen,   label: 'বকেয়া' },
+  { id: 'reports',    icon: BarChart2,  label: 'রিপোর্ট' },
 ]
 
-const MORE_SECTIONS = ['transactions', 'txhistory', 'settings', 'security', 'directions', 'privacy', 'disclaimer', 'terms']
+const MORE_NAV: { id: ActiveSection; icon: any; label: string }[] = [
+  { id: 'transactions', icon: ArrowLeftRight, label: 'লেনদেন' },
+  { id: 'txhistory',    icon: History,        label: 'ইতিহাস' },
+  { id: 'settings',     icon: Settings,       label: 'সেটিংস' },
+  { id: 'security',     icon: Shield,         label: 'নিরাপত্তা' },
+  { id: 'directions',   icon: HelpCircle,     label: 'সাহায্য' },
+  { id: 'privacy',      icon: Lock,           label: 'গোপনীয়তা' },
+  { id: 'disclaimer',   icon: AlertCircle,    label: 'দাবিত্যাগ' },
+  { id: 'terms',        icon: FileText,       label: 'শর্তাবলী' },
+]
 
-/* ── Inner shell — only rendered after user is confirmed ── */
+const MORE_IDS = MORE_NAV.map(x => x.id)
+
 function AppShellInner() {
   const { activeSection, setActiveSection } = useAppStore()
   const [showMore, setShowMore] = useState(false)
 
-  const isMoreActive = MORE_SECTIONS.includes(activeSection)
+  const isMoreActive = MORE_IDS.includes(activeSection)
   const isPOS = activeSection === 'pos'
+  const allSidebarItems = [...MAIN_NAV, ...MORE_NAV]
 
   return (
-    <div className="app-layout">
-      <div style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-        <Topbar />
-        <main
-          key={activeSection}
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: isPOS ? 'hidden' : 'scroll',
-            WebkitOverflowScrolling: 'touch',
-            overscrollBehavior: 'contain',
-            touchAction: isPOS ? 'none' : 'pan-y',
-            padding: isPOS ? 0 : '16px 16px calc(var(--nav-h) + env(safe-area-inset-bottom) + 32px)',
-            animation: 'fade-up 0.25s cubic-bezier(0.16,1,0.3,1) both',
-          }}
-        >
-          {activeSection === 'dashboard'    && <DashboardSection />}
-          {activeSection === 'inventory'    && <InventorySection />}
-          {activeSection === 'pos'          && <POSSection />}
-          {activeSection === 'transactions' && <TransactionsSection />}
-          {activeSection === 'txhistory'    && <TxHistorySection />}
-          {activeSection === 'dueledger'    && <DueLedgerSection />}
-          {activeSection === 'reports'      && <ReportsSection />}
-          {activeSection === 'settings'     && <SettingsSection />}
-          {activeSection === 'security'     && <SecuritySection />}
-          {activeSection === 'directions'   && <HelpSection />}
-          {activeSection === 'privacy'      && <PrivacySection />}
-          {activeSection === 'disclaimer'   && <DisclaimerSection />}
-          {activeSection === 'terms'        && <TermsSection />}
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      <Topbar />
+
+      <div className="app-body">
+        {/* Sidebar — desktop only */}
+        <aside className="app-sidebar">
+          {MAIN_NAV.map(item => {
+            const Icon = item.icon
+            const isActive = activeSection === item.id
+            return (
+              <button
+                key={item.id}
+                className={`sidebar-item${isActive ? (item.isCenter ? ' pos-item' : ' active') : ''}`}
+                onClick={() => setActiveSection(item.id)}
+              >
+                <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
+                {item.label}
+              </button>
+            )
+          })}
+          <div className="sidebar-divider" />
+          <div className="sidebar-label">আরো</div>
+          {MORE_NAV.map(item => {
+            const Icon = item.icon
+            const isActive = activeSection === item.id
+            return (
+              <button
+                key={item.id}
+                className={`sidebar-item${isActive ? ' active' : ''}`}
+                onClick={() => setActiveSection(item.id)}
+              >
+                <Icon size={15} strokeWidth={isActive ? 2.5 : 2} />
+                {item.label}
+              </button>
+            )
+          })}
+        </aside>
+
+        {/* Main content */}
+        <main className={`main-content${isPOS ? ' is-pos' : ''}`}>
+          <div className="main-content-inner" style={{ animation: 'fade-up 0.25s cubic-bezier(0.16,1,0.3,1) both' }} key={activeSection}>
+            {activeSection === 'dashboard'    && <DashboardSection />}
+            {activeSection === 'inventory'    && <InventorySection />}
+            {activeSection === 'pos'          && <POSSection />}
+            {activeSection === 'transactions' && <TransactionsSection />}
+            {activeSection === 'txhistory'    && <TxHistorySection />}
+            {activeSection === 'dueledger'    && <DueLedgerSection />}
+            {activeSection === 'reports'      && <ReportsSection />}
+            {activeSection === 'settings'     && <SettingsSection />}
+            {activeSection === 'security'     && <SecuritySection />}
+            {activeSection === 'directions'   && <HelpSection />}
+            {activeSection === 'privacy'      && <PrivacySection />}
+            {activeSection === 'disclaimer'   && <DisclaimerSection />}
+            {activeSection === 'terms'        && <TermsSection />}
+          </div>
         </main>
       </div>
 
-      {/* Bottom Nav */}
+      {/* Bottom Nav — mobile/tablet only */}
       <nav className="bottom-nav">
-        {BOTTOM_NAV.map(item => {
+        {MAIN_NAV.map(item => {
           const Icon = item.icon
           const isActive = activeSection === item.id
           if (item.isCenter) {
@@ -92,7 +133,7 @@ function AppShellInner() {
             )
           }
           return (
-            <button key={item.id} className={`nav-item ${isActive ? 'active' : ''}`} onClick={() => setActiveSection(item.id)} aria-label={item.label}>
+            <button key={item.id} className={`nav-item${isActive ? ' active' : ''}`} onClick={() => setActiveSection(item.id)} aria-label={item.label}>
               <div className="nav-item-icon"><Icon size={20} strokeWidth={isActive ? 2.5 : 2} /></div>
               <span className="nav-item-label">{item.label}</span>
             </button>
@@ -100,12 +141,13 @@ function AppShellInner() {
         })}
       </nav>
 
-      {/* More button — LEFT side to avoid conflicts */}
+      {/* More FAB — mobile only */}
       <button
+        className="more-fab"
         onClick={() => setShowMore(true)}
         style={{
           position: 'fixed',
-          bottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px)',
+          bottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 10px)',
           left: 12,
           width: 40, height: 40, borderRadius: 12,
           background: isMoreActive ? 'var(--primary)' : 'var(--surface)',
@@ -124,7 +166,6 @@ function AppShellInner() {
   )
 }
 
-/* ── Auth gate — keys AppProvider by user.id to reset all data on user change ── */
 function AuthGate() {
   const { user, loading } = useAuth()
 
@@ -140,7 +181,6 @@ function AuthGate() {
 
   if (!user) return <AuthScreen />
 
-  // KEY = user.id → AppProvider remounts fresh when user switches (data isolation fix)
   return (
     <AppProvider key={user.id}>
       <AppShellInner />

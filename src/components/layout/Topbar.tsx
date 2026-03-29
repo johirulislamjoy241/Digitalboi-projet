@@ -25,22 +25,24 @@ export default function Topbar() {
   return (
     <>
       <header className="topbar">
-        <div className="topbar-logo">
-          <div className="topbar-logo-icon">📦</div>
-          <div className="topbar-brand">
-            <span className="topbar-brand-name">Digiboi</span>
-            {user && <span className="topbar-brand-shop">{user.shop_name}</span>}
+        <div className="topbar-inner">
+          <div className="topbar-logo">
+            <div className="topbar-logo-icon">📦</div>
+            <div className="topbar-brand">
+              <span className="topbar-brand-name">Digiboi</span>
+              {user && <span className="topbar-brand-shop">{user.shop_name}</span>}
+            </div>
           </div>
-        </div>
-        <div className="topbar-actions">
-          <button className="topbar-btn" onClick={toggleTheme} title="থিম পরিবর্তন">
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <button className="topbar-btn" onClick={() => { setShowNotif(v => !v); setShowProfile(false) }}>
-            <Bell size={16} />
-            {hasNotif && <span className="notif-dot" />}
-          </button>
-          <div className="topbar-avatar" onClick={() => { setShowProfile(v => !v); setShowNotif(false) }}>{av}</div>
+          <div className="topbar-actions">
+            <button className="topbar-btn" onClick={toggleTheme} title="থিম পরিবর্তন">
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+            <button className="topbar-btn" onClick={() => { setShowNotif(v => !v); setShowProfile(false) }}>
+              <Bell size={16} />
+              {hasNotif && <span className="notif-dot" />}
+            </button>
+            <div className="topbar-avatar" onClick={() => { setShowProfile(v => !v); setShowNotif(false) }}>{av}</div>
+          </div>
         </div>
       </header>
 

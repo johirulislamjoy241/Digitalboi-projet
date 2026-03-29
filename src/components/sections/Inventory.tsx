@@ -19,8 +19,10 @@ function StatusBadge({ s }:{ s:string }) {
 
 function genCode(name:string) {
   const t = Date.now().toString(36).toUpperCase()
-  const p = name.replace(/[^A-Za-z]/g,'').substring(0,3).toUpperCase()||'DGB'
-  return `DGB-${p}-${t}`
+  // Extract Latin letters only; Bengali names return empty string → avoid DGB-DGB
+  const latin = name.replace(/[^A-Za-z]/g,'').substring(0,4).toUpperCase()
+  const suffix = latin || Math.random().toString(36).substring(2,5).toUpperCase()
+  return `DGB-${suffix}-${t}`
 }
 
 function QRSvg({ val, sz=130 }:{ val:string; sz?:number }) {
@@ -71,7 +73,7 @@ function QRSheet({ item, fmt, onClose }:{ item:InventoryItem; fmt:(v:number)=>st
         </div>
         <div className="modal-body">
           <div style={{display:'flex',justifyContent:'center',marginBottom:12}}>
-            <QRSvg val={item.product_link||item.id}/>
+            <QRSvg val={`${typeof window!=='undefined'?window.location.origin:''}/p/${encodeURIComponent(item.product_link||item.id)}`}/>
           </div>
           <div style={{background:'var(--surface2)',borderRadius:12,padding:12,display:'flex',flexDirection:'column',gap:9,marginBottom:12}}>
             <div style={{display:'flex',gap:10,alignItems:'center'}}>
@@ -92,6 +94,7 @@ function QRSheet({ item, fmt, onClose }:{ item:InventoryItem; fmt:(v:number)=>st
                 <div style={{fontSize:'0.75rem',fontWeight:700,color:'var(--primary)',fontFamily:'var(--font-bn)',marginBottom:3}}>ডিজিবই তালিকাভুক্ত পণ্য</div>
                 <div style={{fontSize:'0.65rem',color:'var(--text3)',fontFamily:'var(--font-bn)',marginBottom:3}}>Digiboi ডিজিটাল সিস্টেমে নিবন্ধিত</div>
                 <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--text2)',background:'var(--surface)',borderRadius:5,padding:'3px 7px',wordBreak:'break-all',userSelect:'all'}}>🔑 {item.product_link||item.id}</div>
+                <div style={{fontSize:'0.58rem',color:'var(--text3)',marginTop:4,fontFamily:'monospace',wordBreak:'break-all'}}>🌐 {typeof window!=='undefined'?window.location.origin:''}/p/{item.product_link||item.id}</div>
               </div>
             </div>
           </div>
