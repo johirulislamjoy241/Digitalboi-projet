@@ -23,6 +23,8 @@
   --sidebar-w:240px;
   --nav-h:64px;
   --topbar-h:60px;
+  --page-pad: 16px;
+  --page-pad-x: 16px;
   --radius:16px;--radius-sm:10px;--radius-lg:24px;
   --font-bn:'Hind Siliguri',sans-serif;
   --font:'Sora','Hind Siliguri',sans-serif;
@@ -475,4 +477,280 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
 /* ═══════════════════════════════════
    GLOBAL
 ═══════════════════════════════════ */
-a,button,[role="button"],.product-card,.kpi-card,.list-item,.due-card{-webkit-tap-highlight-color:transparent}
+
+/* ═══════════════════════════════════════════════════
+   UNIVERSAL RESPONSIVE SYSTEM v3
+   Mobile-first · Bottom sheets · Full-width layout
+   Covers: Mobile (≤600) · Tablet (601-1023) · Desktop (1024+)
+═══════════════════════════════════════════════════ */
+
+/* ── 0. Global: remove max-width cap so app fills screen ── */
+.app-layout {
+  max-width: 100% !important;
+  box-shadow: none !important;
+  background: var(--bg);
+}
+
+/* ═══════════════════════════════════
+   ① MOBILE  (≤ 600px)
+═══════════════════════════════════ */
+@media (max-width: 600px) {
+
+  /* No decorative gradient on small screens */
+  body { background: var(--bg) !important; }
+  body::before { display: none !important; }
+
+  /* Full-width content, small side padding */
+  main {
+    padding-left:  12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* ── Bottom nav: full viewport width ── */
+  .bottom-nav {
+    left: 0 !important;
+    transform: none !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+
+  /* ── POS floating cart bar ── */
+  .pos-cart-bar {
+    left: 12px !important;
+    transform: none !important;
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  /* ── Notification popup ── */
+  .notif-popup {
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: none !important;
+  }
+
+  /* ════════════════════════════════
+     BOTTOM SHEET MODALS
+     All modals slide up from bottom
+  ════════════════════════════════ */
+  .modal-overlay {
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  .modal,
+  .modal-simple,
+  .modal.modal-qr {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 22px 22px 0 0 !important;
+    max-height: 90dvh !important;
+    animation: sheet-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+  }
+
+  /* Always show drag handle on mobile */
+  .modal-handle { display: block !important; }
+
+  /* Footer clears safe-area bottom */
+  .modal-footer {
+    padding-bottom: calc(env(safe-area-inset-bottom, 12px) + 12px) !important;
+  }
+
+  /* ── 2-column grid inside modal body stays 2-col ── */
+  .modal-body .grid-2 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* ── MoreMenu 2-col icon grid ── */
+  .more-menu-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* ════════════════════════════════
+     TOUCH-FRIENDLY INPUTS & BUTTONS
+  ════════════════════════════════ */
+
+  /* font-size ≥16px prevents iOS auto-zoom */
+  .input,
+  select.input,
+  textarea.input {
+    min-height: 48px !important;
+    font-size: 16px !important;
+    padding: 12px 14px !important;
+  }
+
+  .btn        { min-height: 46px !important; font-size: 0.88rem !important; }
+  .btn-sm     { min-height: 40px !important; }
+  .btn-xs     { min-height: 34px !important; }
+  .btn-icon   { min-height: 36px !important; width: 36px !important; }
+
+  /* ════════════════════════════════
+     KPI / STAT CARDS
+  ════════════════════════════════ */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .kpi-value  { font-size: 0.95rem !important; }
+
+  /* ════════════════════════════════
+     LISTS & TEXT
+  ════════════════════════════════ */
+  .list-title {
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  /* ════════════════════════════════
+     CHARTS
+  ════════════════════════════════ */
+  .chart-wrap { height: 160px !important; }
+
+  /* ════════════════════════════════
+     SCROLLABLE DATA TABLES / INVENTORY
+  ════════════════════════════════ */
+  .inv-table-wrap,
+  .tx-table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 12px !important;
+  }
+
+  /* ── Topbar: compact on small phones ── */
+  .topbar { padding: 0 10px !important; }
+  .topbar-brand-shop { max-width: 120px !important; }
+
+  /* ── Card hero text: responsive size ── */
+  .card-hero { padding: 16px !important; border-radius: var(--radius) !important; }
+}
+
+/* ═══════════════════════════════════
+   ② TABLET  (601px – 1023px)
+   Centered column, centered modals
+═══════════════════════════════════ */
+@media (min-width: 601px) and (max-width: 1023px) {
+
+  .app-layout {
+    max-width: 720px !important;
+    margin: 0 auto !important;
+    box-shadow: 0 0 60px rgba(0,0,0,0.08) !important;
+  }
+
+  .bottom-nav   { max-width: 720px !important; }
+  .pos-cart-bar {
+    width: calc(720px - 32px) !important;
+    max-width: 688px !important;
+  }
+
+  .kpi-grid { grid-template-columns: repeat(3, 1fr) !important; }
+
+  /* Centered dialog modal on tablet */
+  .modal-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px !important;
+  }
+  .modal,
+  .modal-simple {
+    border-radius: 20px !important;
+    max-height: calc(100dvh - 80px) !important;
+    max-width: 540px !important;
+    animation: modal-pop 0.25s cubic-bezier(0.34, 1.4, 0.64, 1) both !important;
+  }
+  .modal-handle { display: none !important; }
+
+  .notif-popup {
+    left: auto !important;
+    transform: none !important;
+    right: max(8px, calc((100vw - 720px) / 2 + 8px)) !important;
+    width: 300px !important;
+  }
+}
+
+/* ═══════════════════════════════════
+   ③ DESKTOP  (1024px – 1439px)
+═══════════════════════════════════ */
+@media (min-width: 1024px) {
+
+  body { background: var(--bg2) !important; }
+
+  .app-layout {
+    max-width: 960px !important;
+    margin: 0 auto !important;
+    box-shadow: 0 0 80px rgba(0,0,0,0.1) !important;
+  }
+
+  .bottom-nav   { max-width: 960px !important; }
+  .pos-cart-bar {
+    width: calc(960px - 32px) !important;
+    max-width: 928px !important;
+  }
+
+  .kpi-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .grid-2   { grid-template-columns: 1fr 1fr !important; }
+
+  /* Larger modals on desktop */
+  .modal,
+  .modal-simple { max-width: 620px !important; }
+
+  .notif-popup {
+    right: max(8px, calc((100vw - 960px) / 2 + 8px)) !important;
+    width: 340px !important;
+  }
+}
+
+/* ═══════════════════════════════════
+   ④ LARGE DESKTOP  (1440px+)
+═══════════════════════════════════ */
+@media (min-width: 1440px) {
+
+  .app-layout {
+    max-width: 1080px !important;
+    margin: 0 auto !important;
+  }
+
+  .bottom-nav   { max-width: 1080px !important; }
+  .pos-cart-bar {
+    width: calc(1080px - 32px) !important;
+    max-width: 1048px !important;
+  }
+
+  .kpi-grid { grid-template-columns: repeat(3, 1fr) !important; }
+
+  .notif-popup {
+    right: max(8px, calc((100vw - 1080px) / 2 + 8px)) !important;
+    width: 360px !important;
+  }
+}
+
+/* ═══════════════════════════════════
+   SAFE AREA — iOS / Android notch
+═══════════════════════════════════ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  @media (max-width: 600px) {
+    .modal-overlay {
+      padding-bottom: 0 !important;
+    }
+    .modal-footer {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+    }
+  }
+}
+
+/* ── Modal pop animation (tablet/desktop) ── */
+@keyframes modal-pop {
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
