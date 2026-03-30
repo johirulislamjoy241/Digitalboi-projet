@@ -44,7 +44,7 @@ export default function MoreMenu({ onClose }: Props) {
           </div>
         </div>
         <div className="modal-body">
-          <div className="more-menu-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {MENU_ITEMS.map(item => {
               const Icon = item.icon
               return (
