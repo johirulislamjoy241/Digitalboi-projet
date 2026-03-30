@@ -60,15 +60,19 @@ input[type="number"]{-moz-appearance:textfield}
   flex: 1 1 0%;
   min-width: 0;
   min-height: 100dvh;
+  overflow: hidden;
 }
 .app-content {
   flex: 1 1 0%;
   min-height: 0;
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  padding: 16px 14px 48px;
+  scroll-behavior: smooth;
+  touch-action: pan-y;
+  padding: 16px 14px 80px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -143,17 +147,18 @@ body::before {
 .sidebar-brand { display: flex; flex-direction: column; min-width: 0; }
 .sidebar-brand-name { font-size: 1rem; font-weight: 800; color: #fff; line-height: 1.1; letter-spacing: -0.02em; }
 .sidebar-brand-shop { font-size: 0.67rem; color: rgba(255,255,255,0.78); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-bn); margin-top: 1px; }
-.sidebar-close-btn {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.16);
-  border: 1px solid rgba(255,255,255,0.22);
+.sidebar-close-swipe {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.13);
+  border: 1.5px solid rgba(255,255,255,0.22);
   display: flex; align-items: center; justify-content: center;
-  color: #fff; cursor: pointer;
-  transition: background 0.18s;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.18s;
   flex-shrink: 0; position: relative; z-index: 1;
 }
-.sidebar-close-btn:hover { background: rgba(255,255,255,0.28); }
+.sidebar-close-swipe:hover { background: rgba(255,255,255,0.26); transform: translateX(-2px); }
+.sidebar-close-swipe:active { transform: translateX(-4px) scale(0.95); }
 .sidebar-user {
   display: flex; align-items: center; gap: 11px;
   padding: 13px 14px;
@@ -300,7 +305,9 @@ body::before {
 }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .modal-header { flex-shrink: 0; padding: 12px 20px 14px; border-bottom: 1px solid var(--border); background: var(--surface); }
-.modal-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 16px 20px 20px; }
+.modal-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; scroll-behavior: smooth; touch-action: pan-y; padding: 16px 20px 20px; }
+.modal-qr .modal-body { overflow-x: hidden; }
+.modal-qr { max-width: 420px !important; }
 .modal-footer { flex-shrink: 0; display: flex; gap: 10px; padding: 12px 20px; border-top: 1px solid var(--border); background: var(--surface); }
 .modal-simple {
   background: var(--surface); border-radius: 22px 22px 0 0;
@@ -502,7 +509,7 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
   body { background: var(--bg2); }
   .sidebar { transform: translateX(0) !important; box-shadow: none !important; border-right: 1px solid var(--border); }
   .sidebar-overlay { display: none !important; }
-  .sidebar-close-btn { display: none !important; }
+  .sidebar-close-swipe { display: none !important; }
   .app-main { margin-left: var(--sidebar-w); }
   .topbar-hamburger { display: none !important; }
   .app-content { padding: 28px 36px 64px; max-width: 1140px; margin: 0 auto; width: 100%; }
@@ -524,4 +531,4 @@ select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://ww
 
 /* --- GLOBAL --- */
 a, button, [role="button"], .product-card, .kpi-card, .list-item, .due-card,
-.sidebar-item, .sidebar-close-btn, .sidebar-logout { -webkit-tap-highlight-color: transparent; }
+.sidebar-item, .sidebar-close-swipe, .sidebar-logout { -webkit-tap-highlight-color: transparent; }

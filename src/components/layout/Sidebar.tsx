@@ -5,7 +5,7 @@ import { useToast } from '@/lib/toast-context'
 import {
   Home, Package, ScanLine, BookOpen, BarChart2,
   ArrowLeftRight, History, Settings, Shield,
-  HelpCircle, Lock, FileText, AlertTriangle, LogOut, X
+  HelpCircle, Lock, FileText, AlertTriangle, LogOut
 } from 'lucide-react'
 
 const NAV_MAIN = [
@@ -72,9 +72,9 @@ export default function Sidebar({ open, onClose }: Props) {
               {user && <span className="sidebar-brand-shop">{user.shop_name}</span>}
             </div>
           </div>
-          <button className="sidebar-close-btn" onClick={onClose} aria-label="বন্ধ করুন">
-            <X size={18} />
-          </button>
+          <div className="sidebar-close-swipe" onClick={onClose} aria-label="বন্ধ করুন" title="বন্ধ করুন">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4L6 9L11 14" stroke="rgba(255,255,255,0.85)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </div>
         </div>
 
         {/* User info */}

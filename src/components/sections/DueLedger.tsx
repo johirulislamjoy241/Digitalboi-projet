@@ -76,6 +76,9 @@ function BuyerProfile({
           </div>
 
           {/* Stats grid */}
+          {(() => {
+            const profit = bd.reduce((s,e)=>s+e.paid_amount-(e.quantity*(e.unit_price-0)),0)
+            return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
             <div style={{ background: 'var(--danger-light)', borderRadius: 12, padding: '10px 12px', textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '0.95rem', color: 'var(--danger)' }}>{fmt(totalDue)}</div>
@@ -93,7 +96,13 @@ function BuyerProfile({
               <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>{bd.length}</div>
               <div style={{ fontSize: '0.6rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)', marginTop: 2 }}>মোট রেকর্ড</div>
             </div>
+            <div style={{ background: totalAmt-totalDue>0?'var(--success-light)':'var(--danger-light)', borderRadius: 12, padding: '10px 12px', textAlign: 'center', gridColumn:'span 2' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '1rem', color: totalAmt-totalDue>0?'var(--success)':'var(--danger)' }}>{totalAmt-totalDue>=0?'+':''}{fmt(totalPaid-totalDue)}</div>
+              <div style={{ fontSize: '0.6rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)', marginTop: 2 }}>নেট হিসাব (পরিশোধ − বকেয়া)</div>
+            </div>
           </div>
+            )
+          })()}
 
           {/* History */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -186,6 +195,8 @@ export default function DueLedgerSection() {
   const [bEmail, setBEmail] = useState('')
   const [bAddr, setBAddr] = useState('')
   const [bNotes, setBNotes] = useState('')
+  const [bNid, setBNid] = useState('')
+  const [bRef, setBRef] = useState('')
 
   const fmt = (v: number) => formatCurrency(v, currency)
 
@@ -283,11 +294,11 @@ export default function DueLedgerSection() {
     if (!bName) return toast('নাম দিন', 'er')
     setSaving(true)
     try {
-      const created = await api.addBuyer({ name: bName, phone: bPhone, email: bEmail, address: bAddr, notes: bNotes })
+      const created = await api.addBuyer({ name: bName, phone: bPhone, email: bEmail, address: bAddr, notes: (bRef?`রেফ: ${bRef} | `:'')+bNotes+(bNid?` | NID: ${bNid}`:'') })
       setBuyers([created, ...buyers])
       toast('ক্রেতা যোগ হয়েছে ✅', 'ok')
       setModal(null)
-      setBName(''); setBPhone(''); setBEmail(''); setBAddr(''); setBNotes('')
+      setBName(''); setBPhone(''); setBEmail(''); setBAddr(''); setBNotes(''); setBNid(''); setBRef('')
     } catch (e: unknown) { toast((e as Error).message || 'সমস্যা', 'er') }
     setSaving(false)
   }
@@ -602,25 +613,40 @@ export default function DueLedgerSection() {
               </div>
             </div>
             <div className="modal-body">
-              <div className="input-group">
-                <label className="input-label">নাম *</label>
-                <input className="input" placeholder="ক্রেতার পুরো নাম" value={bName} onChange={e => setBName(e.target.value)} autoFocus />
+              <div style={{background:'var(--primary-bg)',borderRadius:10,padding:'8px 12px',marginBottom:12,fontSize:'0.72rem',color:'var(--primary)',fontFamily:'var(--font-bn)'}}>
+                ⭐ * চিহ্নিত তথ্য অবশ্যই পূরণ করতে হবে
               </div>
               <div className="input-group">
-                <label className="input-label">ফোন নম্বর</label>
-                <input className="input" type="tel" placeholder="01XXXXXXXXX" value={bPhone} onChange={e => setBPhone(e.target.value)} />
+                <label className="input-label">👤 পুরো নাম *</label>
+                <input className="input" placeholder="ক্রেতার পুরো নাম লিখুন" value={bName} onChange={e => setBName(e.target.value)} autoFocus />
+              </div>
+              <div className="grid-2">
+                <div className="input-group">
+                  <label className="input-label">📱 ফোন নম্বর *</label>
+                  <input className="input" type="tel" placeholder="01XXXXXXXXX" value={bPhone} onChange={e => setBPhone(e.target.value)} />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">📧 ইমেইল</label>
+                  <input className="input" type="email" placeholder="email@example.com" value={bEmail} onChange={e => setBEmail(e.target.value)} />
+                </div>
               </div>
               <div className="input-group">
-                <label className="input-label">ইমেইল (ঐচ্ছিক)</label>
-                <input className="input" type="email" placeholder="email@example.com" value={bEmail} onChange={e => setBEmail(e.target.value)} />
+                <label className="input-label">🏠 সম্পূর্ণ ঠিকানা</label>
+                <textarea className="input" placeholder="গ্রাম / মহল্লা, উপজেলা, জেলা" value={bAddr} onChange={e => setBAddr(e.target.value)} style={{minHeight:64,resize:'vertical'}} />
               </div>
-              <div className="input-group">
-                <label className="input-label">ঠিকানা</label>
-                <input className="input" placeholder="ঠিকানা লিখুন" value={bAddr} onChange={e => setBAddr(e.target.value)} />
+              <div className="grid-2">
+                <div className="input-group">
+                  <label className="input-label">🪪 NID কার্ড নম্বর</label>
+                  <input className="input" placeholder="১০ বা ১৭ ডিজিট" value={bNid} onChange={e => setBNid(e.target.value)} />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">🔗 রেফারেন্স</label>
+                  <input className="input" placeholder="পরিচিতকারীর নাম" value={bRef} onChange={e => setBRef(e.target.value)} />
+                </div>
               </div>
               <div className="input-group" style={{ marginBottom: 0 }}>
-                <label className="input-label">নোট</label>
-                <input className="input" placeholder="অতিরিক্ত তথ্য" value={bNotes} onChange={e => setBNotes(e.target.value)} />
+                <label className="input-label">📝 নোট / মন্তব্য</label>
+                <input className="input" placeholder="অতিরিক্ত তথ্য বা মন্তব্য" value={bNotes} onChange={e => setBNotes(e.target.value)} />
               </div>
             </div>
             <div className="modal-footer">
