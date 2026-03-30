@@ -100,7 +100,6 @@ function QRSheet({ item, fmt, onClose }:{ item:InventoryItem; fmt:(v:number)=>st
           <div style={{fontSize:'0.68rem',color:'var(--text3)',fontFamily:'var(--font-bn)',marginBottom:5,textAlign:'center'}}>বারকোড</div>
           <Barcode val={item.product_link||item.id}/>
         </div>
-        </div>
         <div className="modal-footer" style={{gap:8}}>
           <button className="btn btn-ghost" style={{flex:1}} onClick={onClose}>বন্ধ করুন</button>
           <button className="btn btn-primary" style={{flex:1}} onClick={()=>{
