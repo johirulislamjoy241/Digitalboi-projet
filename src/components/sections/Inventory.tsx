@@ -19,10 +19,8 @@ function StatusBadge({ s }:{ s:string }) {
 
 function genCode(name:string) {
   const t = Date.now().toString(36).toUpperCase()
-  const raw = name.replace(/[^A-Za-z]/g,'').substring(0,4).toUpperCase()
-  // Prevent DGB-DGB double prefix
-  const p = raw === 'DGB' ? (name.replace(/[^A-Za-z]/g,'').substring(3,6).toUpperCase() || 'PRD') : (raw || 'PRD')
-  return `DGB-${p}${t}`
+  const p = name.replace(/[^A-Za-z]/g,'').substring(0,3).toUpperCase()||'DGB'
+  return `DGB-${p}-${t}`
 }
 
 function QRSvg({ val, sz=130 }:{ val:string; sz?:number }) {
@@ -100,22 +98,8 @@ function QRSheet({ item, fmt, onClose }:{ item:InventoryItem; fmt:(v:number)=>st
           <div style={{fontSize:'0.68rem',color:'var(--text3)',fontFamily:'var(--font-bn)',marginBottom:5,textAlign:'center'}}>বারকোড</div>
           <Barcode val={item.product_link||item.id}/>
         </div>
-        <div className="modal-footer" style={{gap:8}}>
-          <button className="btn btn-ghost" style={{flex:1}} onClick={onClose}>বন্ধ করুন</button>
-          <button className="btn btn-primary" style={{flex:1}} onClick={()=>{
-            // Save QR as SVG
-            const svgEl = document.querySelector('.modal-qr svg') as SVGSVGElement|null
-            if(!svgEl) return
-            const serializer = new XMLSerializer()
-            const svgStr = serializer.serializeToString(svgEl)
-            const blob = new Blob([svgStr],{type:'image/svg+xml'})
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `${item.name.replace(/\s+/g,'-')}-QR.svg`
-            a.click()
-            URL.revokeObjectURL(url)
-          }}>💾 QR সেভ</button>
+        <div className="modal-footer">
+          <button className="btn btn-ghost btn-full" onClick={onClose}>বন্ধ করুন</button>
         </div>
       </div>
     </div>

@@ -173,19 +173,9 @@ export default function POSSection() {
   const [showOk, setShowOk] = useState(false)
   const [lastSale, setLastSale] = useState<{ total: number; profit: number; change: number } | null>(null)
   const [showCam, setShowCam] = useState(false)
-  const [buyers, setBuyers] = useState<Array<{id:string;name:string;phone?:string}>>([])
-  const [buyerSearch, setBuyerSearch] = useState('')
-  const [showBuyerDD, setShowBuyerDD] = useState(false)
-  const [selBuyer, setSelBuyer] = useState<{id:string;name:string;phone?:string}|null>(null)
-
-  const filteredBuyers = useMemo(() => {
-    if (!buyerSearch) return buyers.slice(0, 20)
-    return buyers.filter(b => b.name.toLowerCase().includes(buyerSearch.toLowerCase()) || (b.phone||'').includes(buyerSearch))
-  }, [buyers, buyerSearch])
 
   useEffect(() => {
     if (inventory.length === 0) api.getInventory().then(setInventory)
-    api.getBuyers().then(setBuyers).catch(()=>{})
   }, []) // eslint-disable-line
 
   /* Scan → directly add to cart */
@@ -377,7 +367,7 @@ export default function POSSection() {
         <div
           onClick={() => setShowCart(true)}
           className="pos-cart-bar"
-          style={{ bottom: 'calc(env(safe-area-inset-bottom,0px) + 16px)', background: 'linear-gradient(135deg,var(--primary),var(--accent))', borderRadius: 16, padding: '13px 16px', boxShadow: '0 8px 24px rgba(255,87,34,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+          style={{ bottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 12px)', background: 'linear-gradient(135deg,var(--primary),var(--accent))', borderRadius: 16, padding: '13px 16px', boxShadow: '0 8px 24px rgba(255,87,34,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
         >
           <div style={{ color: 'white' }}>
             <div style={{ fontSize: '0.68rem', opacity: 0.85, fontFamily: 'var(--font-bn)' }}>কার্টে {count} পণ্য</div>
@@ -439,48 +429,14 @@ export default function POSSection() {
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', fontWeight: 600, color: profit >= 0 ? 'var(--success)' : 'var(--danger)' }}>{profit >= 0 ? '+' : ''}{fmt(profit)}</span>
                     </div>
                   </div>
+                  <div className="input-group">
+                    <label className="input-label"><User size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />ক্রেতার নাম {payMode === 'due' ? '*' : '(ঐচ্ছিক)'}</label>
+                    <input className="input" placeholder="ক্রেতার নাম..." value={customer} onChange={e => setCustomer(e.target.value)} />
+                  </div>
                   <div className="tabs" style={{ marginBottom: 12 }}>
                     <button className={`tab ${payMode === 'cash' ? 'active' : ''}`} onClick={() => setPayMode('cash')}><Banknote size={13} style={{ verticalAlign: 'middle', marginRight: 3 }} />নগদ</button>
-                    <button className={`tab ${payMode === 'due' ? 'active' : ''}`} onClick={() => { setPayMode('due'); setSelBuyer(null); setBuyerSearch(''); }}><CreditCard size={13} style={{ verticalAlign: 'middle', marginRight: 3 }} />বকেয়া</button>
+                    <button className={`tab ${payMode === 'due' ? 'active' : ''}`} onClick={() => setPayMode('due')}><CreditCard size={13} style={{ verticalAlign: 'middle', marginRight: 3 }} />বকেয়া</button>
                   </div>
-                  {payMode === 'due' ? (
-                    <div className="input-group">
-                      <label className="input-label"><User size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />ক্রেতা নির্বাচন *</label>
-                      <div style={{ position: 'relative' }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:7, background:'var(--surface2)', border:`1.5px solid ${selBuyer ? 'var(--success)' : 'var(--border)'}`, borderRadius:12, padding:'0 12px', height:42 }}>
-                          <User size={14} color="var(--text3)" style={{flexShrink:0}}/>
-                          <input
-                            style={{ flex:1, minWidth:0, background:'transparent', border:'none', outline:'none', color:'var(--text)', fontSize:'0.83rem', fontFamily:'var(--font-bn)' }}
-                            placeholder="ক্রেতার নাম বা ফোন..."
-                            value={buyerSearch}
-                            onChange={e => { setBuyerSearch(e.target.value); setSelBuyer(null); setCustomer(e.target.value); setShowBuyerDD(true); }}
-                            onFocus={() => setShowBuyerDD(true)}
-                          />
-                          {selBuyer && <span style={{fontSize:'0.7rem',color:'var(--success)',flexShrink:0}}>✓</span>}
-                        </div>
-                        {showBuyerDD && filteredBuyers.length > 0 && (
-                          <>
-                            <div style={{position:'fixed',inset:0,zIndex:10}} onClick={()=>setShowBuyerDD(false)}/>
-                            <div style={{position:'absolute',top:'100%',left:0,right:0,background:'var(--surface)',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 8px 24px rgba(0,0,0,0.15)',zIndex:20,maxHeight:180,overflowY:'auto',marginTop:4}}>
-                              {filteredBuyers.map(b=>(
-                                <button key={b.id} onClick={()=>{ setSelBuyer(b); setBuyerSearch(b.name); setCustomer(b.name); setShowBuyerDD(false); }} style={{width:'100%',padding:'10px 14px',textAlign:'left',background:'none',border:'none',cursor:'pointer',borderBottom:'1px solid var(--border)',fontSize:'0.83rem',fontFamily:'var(--font-bn)',color:'var(--text)',display:'flex',alignItems:'center',gap:8}}>
-                                  <span style={{width:28,height:28,borderRadius:'50%',background:'var(--primary-bg)',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:'0.75rem',flexShrink:0,fontWeight:700,color:'var(--primary)'}}>{b.name.charAt(0).toUpperCase()}</span>
-                                  <span style={{flex:1}}>{b.name}{b.phone && <span style={{color:'var(--text3)',marginLeft:6,fontSize:'0.72rem'}}>· {b.phone}</span>}</span>
-                                </button>
-                              ))}
-                              {buyers.length === 0 && <div style={{padding:'12px',textAlign:'center',fontSize:'0.78rem',color:'var(--text3)',fontFamily:'var(--font-bn)'}}>কোনো ক্রেতা নেই — আগে বকেয়া সেকশনে যোগ করুন</div>}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                      {selBuyer && <div style={{fontSize:'0.72rem',color:'var(--success)',marginTop:4,fontFamily:'var(--font-bn)'}}>✅ {selBuyer.name} নির্বাচিত</div>}
-                    </div>
-                  ) : (
-                    <div className="input-group">
-                      <label className="input-label"><User size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />ক্রেতার নাম (ঐচ্ছিক)</label>
-                      <input className="input" placeholder="ক্রেতার নাম..." value={customer} onChange={e => setCustomer(e.target.value)} />
-                    </div>
-                  )}
                   {payMode === 'cash' && (
                     <div className="input-group">
                       <label className="input-label">প্রদত্ত টাকা</label>
