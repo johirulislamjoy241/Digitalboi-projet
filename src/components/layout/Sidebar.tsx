@@ -5,7 +5,8 @@ import { useToast } from '@/lib/toast-context'
 import {
   Home, Package, ScanLine, BookOpen, BarChart2,
   ArrowLeftRight, History, Settings, Shield,
-  HelpCircle, Lock, FileText, AlertTriangle, LogOut, X
+  HelpCircle, Lock, FileText, AlertTriangle, LogOut, X,
+  Phone, Store
 } from 'lucide-react'
 
 const NAV_MAIN = [
@@ -52,7 +53,7 @@ export default function Sidebar({ open, onClose }: Props) {
 
   return (
     <>
-      {/* Overlay (mobile only) */}
+      {/* Overlay */}
       {open && (
         <div
           className="sidebar-overlay"
@@ -61,35 +62,79 @@ export default function Sidebar({ open, onClose }: Props) {
         />
       )}
 
-      {/* Sidebar panel */}
       <aside className={`sidebar ${open ? 'sidebar-open' : ''}`} aria-label="নেভিগেশন">
-        {/* Header */}
+
+        {/* ── Header: শুধু close button + ছোট brand নাম ── */}
         <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <div className="sidebar-logo-icon">📦</div>
+          <div className="sidebar-logo" style={{ justifyContent: 'flex-start' }}>
             <div className="sidebar-brand">
               <span className="sidebar-brand-name">Digiboi</span>
-              {user && <span className="sidebar-brand-shop">{user.shop_name}</span>}
+              <span className="sidebar-brand-shop" style={{ fontSize: '0.62rem', opacity: 0.8 }}>ব্যবসা ব্যবস্থাপনা</span>
             </div>
           </div>
-          <button className="sidebar-close-btn" onClick={onClose} aria-label="বন্ধ করুন">
+          <button
+            className="sidebar-close-btn"
+            onClick={onClose}
+            aria-label="বন্ধ করুন"
+          >
             <X size={18} />
           </button>
         </div>
 
-        {/* User info */}
+        {/* ── User Profile Section — প্রো UI ── */}
         <div className="sidebar-user">
+          {/* Avatar */}
           <div className="sidebar-avatar">{av}</div>
+
+          {/* Info */}
           <div className="sidebar-user-info">
-            <div className="sidebar-user-name">{user?.shop_name}</div>
-            <div className="sidebar-user-sub">{user?.owner_name} · {user?.phone}</div>
+            {/* দোকানের নাম */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              marginBottom: 1
+            }}>
+              <Store size={11} color="var(--primary)" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+              <div className="sidebar-user-name">{user?.shop_name || 'আপনার দোকান'}</div>
+            </div>
+
+            {/* মালিকের নাম */}
+            {user?.owner_name && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                marginBottom: 1
+              }}>
+                <span style={{ fontSize: '0.62rem', color: 'var(--text3)' }}>👤</span>
+                <div className="sidebar-user-sub">{user.owner_name}</div>
+              </div>
+            )}
+
+            {/* ফোন নম্বর */}
+            {user?.phone && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                marginBottom: 1
+              }}>
+                <Phone size={10} color="var(--text3)" strokeWidth={2} style={{ flexShrink: 0 }} />
+                <div className="sidebar-user-sub">{user.phone}</div>
+              </div>
+            )}
+
+            {/* Low stock warning */}
             {lowStock.length > 0 && (
-              <div className="sidebar-alert">⚠️ {lowStock.length} টি পণ্য কম</div>
+              <div className="sidebar-alert">
+                ⚠️ {lowStock.length} টি পণ্যের স্টক কম
+              </div>
             )}
           </div>
         </div>
 
-        {/* Main nav */}
+        {/* ── Navigation ── */}
         <nav className="sidebar-nav">
           <div className="sidebar-nav-label">মূল মেনু</div>
           {NAV_MAIN.map(item => {
@@ -100,13 +145,24 @@ export default function Sidebar({ open, onClose }: Props) {
                 key={item.id}
                 className={`sidebar-item ${isActive ? 'sidebar-item-active' : ''}`}
                 onClick={() => go(item.id)}
-                style={{ '--item-color': item.color } as React.CSSProperties}
               >
-                <div className="sidebar-item-icon">
-                  <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                <div
+                  className="sidebar-item-icon"
+                  style={isActive ? { background: `${item.color}20` } : {}}
+                >
+                  <Icon
+                    size={18}
+                    strokeWidth={isActive ? 2.5 : 2}
+                    color={isActive ? item.color : undefined}
+                  />
                 </div>
                 <span className="sidebar-item-label">{item.label}</span>
-                {isActive && <div className="sidebar-item-dot" />}
+                {isActive && (
+                  <div
+                    className="sidebar-item-dot"
+                    style={{ background: item.color }}
+                  />
+                )}
               </button>
             )
           })}
@@ -122,26 +178,38 @@ export default function Sidebar({ open, onClose }: Props) {
                 key={item.id}
                 className={`sidebar-item ${isActive ? 'sidebar-item-active' : ''}`}
                 onClick={() => go(item.id)}
-                style={{ '--item-color': item.color } as React.CSSProperties}
               >
-                <div className="sidebar-item-icon">
-                  <Icon size={17} strokeWidth={isActive ? 2.5 : 2} />
+                <div
+                  className="sidebar-item-icon"
+                  style={isActive ? { background: `${item.color}20` } : {}}
+                >
+                  <Icon
+                    size={17}
+                    strokeWidth={isActive ? 2.5 : 2}
+                    color={isActive ? item.color : undefined}
+                  />
                 </div>
                 <span className="sidebar-item-label">{item.label}</span>
-                {isActive && <div className="sidebar-item-dot" />}
+                {isActive && (
+                  <div
+                    className="sidebar-item-dot"
+                    style={{ background: item.color }}
+                  />
+                )}
               </button>
             )
           })}
         </nav>
 
-        {/* Footer */}
+        {/* ── Footer ── */}
         <div className="sidebar-footer">
           <button className="sidebar-logout" onClick={doLogout}>
             <LogOut size={16} />
             <span>সাইন আউট</span>
           </button>
-          <div className="sidebar-version">v12.0 · Digiboi</div>
+          <div className="sidebar-version">v12.0 · Digiboi POS</div>
         </div>
+
       </aside>
     </>
   )
