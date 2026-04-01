@@ -3,9 +3,13 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useAppStore } from '@/lib/app-store'
 import { useToast } from '@/lib/toast-context'
-import { Bell, Sun, Moon, Package, X } from 'lucide-react'
+import { Bell, Sun, Moon, Package, X, Menu } from 'lucide-react'
 
-export default function Topbar() {
+interface Props {
+  onMenuOpen: () => void
+}
+
+export default function Topbar({ onMenuOpen }: Props) {
   const { user } = useAuth()
   const { theme, setTheme, inventory } = useAppStore()
   const { toast } = useToast()
@@ -25,6 +29,9 @@ export default function Topbar() {
   return (
     <>
       <header className="topbar">
+        <button className="topbar-btn topbar-hamburger" onClick={onMenuOpen} aria-label="মেনু খুলুন" style={{ marginRight: 4 }}>
+          <Menu size={18} />
+        </button>
         <div className="topbar-logo">
           <div className="topbar-logo-icon">📦</div>
           <div className="topbar-brand">
@@ -44,38 +51,30 @@ export default function Topbar() {
         </div>
       </header>
 
-      {/* Notification Popup */}
       {showNotif && (
         <>
           <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 590, background: 'transparent' }} />
           <div className="notif-popup">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', fontFamily: 'var(--font-bn)' }}>🔔 সতর্কতা</span>
-              <button onClick={() => setShowNotif(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, borderRadius: 8, display: 'flex', alignItems: 'center' }}>
-                <X size={16} />
-              </button>
+              <button onClick={() => setShowNotif(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, borderRadius: 8, display: 'flex', alignItems: 'center' }}><X size={16} /></button>
             </div>
             {lowStock.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text3)', fontFamily: 'var(--font-bn)', fontSize: '0.82rem' }}>✅ সব ঠিক আছে</div>
             ) : lowStock.map(item => (
               <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: item.status === 'Out of Stock' ? 'var(--danger-light)' : 'var(--warning-light)', color: item.status === 'Out of Stock' ? 'var(--danger)' : 'var(--warning)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Package size={16} />
-                </div>
+                <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: item.status === 'Out of Stock' ? 'var(--danger-light)' : 'var(--warning-light)', color: item.status === 'Out of Stock' ? 'var(--danger)' : 'var(--warning)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={16} /></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-bn)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
                   <div style={{ fontSize: '0.68rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)' }}>{item.quantity} {item.unit} বাকি</div>
                 </div>
-                <span className={`badge ${item.status === 'Out of Stock' ? 'badge-danger' : 'badge-warning'}`}>
-                  {item.status === 'Out of Stock' ? 'শেষ' : 'কম'}
-                </span>
+                <span className={`badge ${item.status === 'Out of Stock' ? 'badge-danger' : 'badge-warning'}`}>{item.status === 'Out of Stock' ? 'শেষ' : 'কম'}</span>
               </div>
             ))}
           </div>
         </>
       )}
 
-      {/* Profile Sheet */}
       {showProfile && (
         <div className="modal-overlay" onClick={() => setShowProfile(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>

@@ -367,7 +367,7 @@ export default function POSSection() {
         <div
           onClick={() => setShowCart(true)}
           className="pos-cart-bar"
-          style={{ bottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 12px)', background: 'linear-gradient(135deg,var(--primary),var(--accent))', borderRadius: 16, padding: '13px 16px', boxShadow: '0 8px 24px rgba(255,87,34,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+          style={{ bottom: 'calc(env(safe-area-inset-bottom,0px) + 16px)', background: 'linear-gradient(135deg,var(--primary),var(--accent))', borderRadius: 16, padding: '13px 16px', boxShadow: '0 8px 24px rgba(255,87,34,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
         >
           <div style={{ color: 'white' }}>
             <div style={{ fontSize: '0.68rem', opacity: 0.85, fontFamily: 'var(--font-bn)' }}>কার্টে {count} পণ্য</div>
