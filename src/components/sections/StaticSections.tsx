@@ -6,7 +6,7 @@ function StaticPage({ icon, title, children }: { icon: React.ReactNode; title: s
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div className="card card-p anim-fade-up">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--primary-bg)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--brand-subtle)', color: 'var(--brand-1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
           <div className="section-title">{title}</div>
         </div>
         <div style={{ color: 'var(--text2)', fontSize: '0.82rem', lineHeight: 1.8, fontFamily: 'var(--font-bn)' }}>{children}</div>
@@ -41,7 +41,7 @@ export function HelpSection() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div className="card card-p anim-fade-up">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--primary-bg)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelpCircle size={22} /></div>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--brand-subtle)', color: 'var(--brand-1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><HelpCircle size={22} /></div>
           <div className="section-title">সাহায্য ও নির্দেশিকা</div>
         </div>
         {items.map((item, i) => (

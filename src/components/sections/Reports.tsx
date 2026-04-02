@@ -7,7 +7,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { BarChart2, Download, TrendingUp, TrendingDown, DollarSign, Package } from 'lucide-react'
 
-const COLORS = ['#FF5722', '#FF9800', '#00C853', '#2196F3', '#9C27B0', '#F44336', '#00BCD4', '#8BC34A']
+const COLORS = ['var(--brand-1)', 'var(--brand-2)', 'var(--success)', 'var(--info)', 'var(--purple)', 'var(--danger)', '#00BCD4', '#8BC34A']
 const TT_STYLE = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 11, fontFamily: 'var(--font-bn)', color: 'var(--text)' }
 
 export default function ReportsSection() {
@@ -64,12 +64,12 @@ export default function ReportsSection() {
   }
 
   const STATS = [
-    { label: 'স্টক মূল্য', value: fmt(R.totalVal), color: '#FF9800', bg: 'rgba(255,152,0,0.1)', icon: DollarSign },
-    { label: 'মোট পণ্য', value: String(R.totalItems), color: '#2196F3', bg: 'var(--info-light)', icon: Package },
-    { label: 'মোট বিক্রয়', value: fmt(R.totalSales), color: '#9C27B0', bg: 'rgba(156,39,176,0.1)', icon: BarChart2 },
-    { label: 'মোট লাভ', value: fmt(R.totalProfit), color: '#00C853', bg: 'var(--success-light)', icon: TrendingUp },
-    { label: 'মোট ক্ষতি', value: fmt(R.totalLoss), color: '#F44336', bg: 'var(--danger-light)', icon: TrendingDown },
-    { label: 'নিট লাভ/ক্ষতি', value: fmt(R.totalProfit - R.totalLoss), color: R.totalProfit >= R.totalLoss ? '#00C853' : '#F44336', bg: R.totalProfit >= R.totalLoss ? 'var(--success-light)' : 'var(--danger-light)', icon: TrendingUp },
+    { label: 'স্টক মূল্য', value: fmt(R.totalVal), color: 'var(--brand-2)', bg: 'rgba(255,152,0,0.1)', icon: DollarSign },
+    { label: 'মোট পণ্য', value: String(R.totalItems), color: 'var(--info)', bg: 'var(--info-light)', icon: Package },
+    { label: 'মোট বিক্রয়', value: fmt(R.totalSales), color: 'var(--purple)', bg: 'rgba(156,39,176,0.1)', icon: BarChart2 },
+    { label: 'মোট লাভ', value: fmt(R.totalProfit), color: 'var(--success)', bg: 'var(--success-light)', icon: TrendingUp },
+    { label: 'মোট ক্ষতি', value: fmt(R.totalLoss), color: 'var(--danger)', bg: 'var(--danger-light)', icon: TrendingDown },
+    { label: 'নিট লাভ/ক্ষতি', value: fmt(R.totalProfit - R.totalLoss), color: R.totalProfit >= R.totalLoss ? 'var(--success)' : 'var(--danger)', bg: R.totalProfit >= R.totalLoss ? 'var(--success-light)' : 'var(--danger-light)', icon: TrendingUp },
   ]
 
   return (
@@ -116,9 +116,9 @@ export default function ReportsSection() {
               <LineChart data={R.daily}>
                 <XAxis dataKey="date" tick={{ fontSize: 9, fill: 'var(--text3)' }} axisLine={false} tickLine={false} />
                 <YAxis hide />
-                <Tooltip contentStyle={TT_STYLE} cursor={{ stroke: 'var(--primary)', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                <Line type="monotone" dataKey="profit" stroke="#00C853" strokeWidth={2.5} dot={{ r: 3, fill: '#00C853' }} name="লাভ" />
-                <Line type="monotone" dataKey="sales" stroke="#FF5722" strokeWidth={2.5} dot={{ r: 3, fill: '#FF5722' }} name="বিক্রয়" />
+                <Tooltip contentStyle={TT_STYLE} cursor={{ stroke: 'var(--brand-1)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                <Line type="monotone" dataKey="profit" stroke="#00C853" strokeWidth={2.5} dot={{ r: 3, fill: 'var(--success)' }} name="লাভ" />
+                <Line type="monotone" dataKey="sales" stroke="#FF5722" strokeWidth={2.5} dot={{ r: 3, fill: 'var(--brand-1)' }} name="বিক্রয়" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -176,7 +176,7 @@ export default function ReportsSection() {
         </div>
         {inventory.filter(i => i.status !== 'Archived').sort((a, b) => b.quantity * b.buy_price - a.quantity * a.buy_price).slice(0, 8).map(item => (
           <div key={item.id} className="list-item">
-            <div className="list-icon" style={{ background: 'var(--primary-bg)', color: 'var(--primary)', fontSize: '1rem' }}>📦</div>
+            <div className="list-icon" style={{ background: 'var(--brand-subtle)', color: 'var(--brand-1)', fontSize: '1rem' }}>📦</div>
             <div className="list-info">
               <div className="list-title">{item.name}</div>
               <div className="list-sub">{item.quantity} {item.unit} · {item.category}</div>

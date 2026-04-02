@@ -144,7 +144,7 @@ function CameraScanner({ onScan, onClose }: { onScan: (c: string) => void; onClo
             onKeyDown={e => e.key === 'Enter' && submit()}
             autoComplete="off"
           />
-          <button onClick={submit} style={{ padding: '0 18px', background: 'var(--primary)', border: 'none', borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={submit} style={{ padding: '0 18px', background: 'var(--brand-1)', border: 'none', borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Check size={20} />
           </button>
         </div>
@@ -313,7 +313,7 @@ export default function POSSection() {
           {/* Camera scan button */}
           <button
             onClick={() => setShowCam(true)}
-            style={{ flexShrink: 0, width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,var(--primary),var(--accent))', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,87,34,0.4)' }}
+            style={{ flexShrink: 0, width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,var(--brand-1),var(--accent))', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,87,34,0.4)' }}
           >
             <Camera size={18} />
           </button>
@@ -348,12 +348,12 @@ export default function POSSection() {
                   key={item.id}
                   onClick={() => !isOut && addItem(item)}
                   disabled={isOut}
-                  style={{ background: inCart ? 'var(--primary-bg)' : 'var(--surface)', border: `1.5px solid ${inCart ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 14, padding: '12px 10px', cursor: isOut ? 'not-allowed' : 'pointer', opacity: isOut ? 0.5 : 1, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 5, position: 'relative', WebkitTapHighlightColor: 'transparent' }}
+                  style={{ background: inCart ? 'var(--brand-subtle)' : 'var(--surface)', border: `1.5px solid ${inCart ? 'var(--brand-1)' : 'var(--border)'}`, borderRadius: 14, padding: '12px 10px', cursor: isOut ? 'not-allowed' : 'pointer', opacity: isOut ? 0.5 : 1, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 5, position: 'relative', WebkitTapHighlightColor: 'transparent' }}
                 >
-                  {inCart && <span style={{ position: 'absolute', top: 6, right: 6, width: 20, height: 20, background: 'var(--primary)', borderRadius: '50%', color: 'white', fontSize: '0.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{inCart.qty}</span>}
+                  {inCart && <span style={{ position: 'absolute', top: 6, right: 6, width: 20, height: 20, background: 'var(--brand-1)', borderRadius: '50%', color: 'white', fontSize: '0.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{inCart.qty}</span>}
                   <div style={{ fontSize: '1.4rem', lineHeight: 1 }}>{CE[item.category] || '📦'}</div>
                   <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-bn)', lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{item.name}</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.85rem', color: inCart ? 'var(--primary)' : 'var(--text)' }}>{fmt(item.sell_price)}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.85rem', color: inCart ? 'var(--brand-1)' : 'var(--text)' }}>{fmt(item.sell_price)}</div>
                   <div style={{ fontSize: '0.6rem', color: item.quantity <= 5 ? 'var(--danger)' : 'var(--text3)', fontFamily: 'var(--font-bn)' }}>{item.quantity} {item.unit} {item.quantity <= 5 && '⚠'}</div>
                 </button>
               )
@@ -367,7 +367,7 @@ export default function POSSection() {
         <div
           onClick={() => setShowCart(true)}
           className="pos-cart-bar"
-          style={{ bottom: 'calc(env(safe-area-inset-bottom,0px) + 16px)', background: 'linear-gradient(135deg,var(--primary),var(--accent))', borderRadius: 16, padding: '13px 16px', boxShadow: '0 8px 24px rgba(255,87,34,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+          style={{ bottom: 'calc(env(safe-area-inset-bottom,0px) + 16px)', background: 'linear-gradient(135deg,var(--brand-1),var(--accent))', borderRadius: 16, padding: '13px 16px', boxShadow: '0 8px 24px rgba(255,87,34,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
         >
           <div style={{ color: 'white' }}>
             <div style={{ fontSize: '0.68rem', opacity: 0.85, fontFamily: 'var(--font-bn)' }}>কার্টে {count} পণ্য</div>
@@ -412,7 +412,7 @@ export default function POSSection() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--surface2)', borderRadius: 10, padding: '4px 6px', border: '1px solid var(--border)', flexShrink: 0 }}>
                           <button onClick={() => adjQty(item.product.id, -1)} disabled={item.qty <= 1} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--surface3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text2)' }}><Minus size={12} /></button>
                           <span style={{ minWidth: 24, textAlign: 'center', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.88rem' }}>{item.qty}</span>
-                          <button onClick={() => adjQty(item.product.id, 1)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><Plus size={12} /></button>
+                          <button onClick={() => adjQty(item.product.id, 1)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--brand-1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><Plus size={12} /></button>
                         </div>
                         <input className="input" type="number" value={item.unitPrice} onChange={e => setPrice(item.product.id, e.target.value)} style={{ flex: 1, padding: '6px 10px', fontSize: '0.82rem', height: 36, minWidth: 0 }} step="any" />
                         <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0, minWidth: 60, textAlign: 'right' }}>{fmt(item.qty * item.unitPrice)}</span>

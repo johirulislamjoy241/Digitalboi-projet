@@ -7,13 +7,13 @@ import { ArrowLeftRight, History, Settings, Shield, HelpCircle, Lock, FileText, 
 interface Props { onClose: () => void }
 
 const MENU_ITEMS = [
-  { id: 'transactions', icon: ArrowLeftRight, label: 'লেনদেন', color: '#2196F3', bg: 'var(--info-light)' },
-  { id: 'txhistory', icon: History, label: 'ইতিহাস', color: '#9C27B0', bg: 'rgba(156,39,176,0.1)' },
+  { id: 'transactions', icon: ArrowLeftRight, label: 'লেনদেন', color: 'var(--info)', bg: 'var(--info-light)' },
+  { id: 'txhistory', icon: History, label: 'ইতিহাস', color: 'var(--purple)', bg: 'rgba(156,39,176,0.1)' },
   { id: 'settings', icon: Settings, label: 'সেটিংস', color: '#607D8B', bg: 'rgba(96,125,139,0.1)' },
   { id: 'security', icon: Shield, label: 'নিরাপত্তা', color: '#4CAF50', bg: 'var(--success-light)' },
-  { id: 'directions', icon: HelpCircle, label: 'সাহায্য', color: '#FF9800', bg: 'rgba(255,152,0,0.1)' },
+  { id: 'directions', icon: HelpCircle, label: 'সাহায্য', color: 'var(--brand-2)', bg: 'rgba(255,152,0,0.1)' },
   { id: 'privacy', icon: Lock, label: 'গোপনীয়তা', color: '#607D8B', bg: 'rgba(96,125,139,0.1)' },
-  { id: 'disclaimer', icon: AlertTriangle, label: 'দাবিত্যাগ', color: '#F44336', bg: 'var(--danger-light)' },
+  { id: 'disclaimer', icon: AlertTriangle, label: 'দাবিত্যাগ', color: 'var(--danger)', bg: 'var(--danger-light)' },
   { id: 'terms', icon: FileText, label: 'শর্তাবলী', color: '#607D8B', bg: 'rgba(96,125,139,0.1)' },
 ]
 
