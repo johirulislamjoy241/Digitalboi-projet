@@ -9,21 +9,21 @@ import {
 } from 'lucide-react'
 
 const NAV_MAIN = [
-  { id: 'dashboard' as ActiveSection, icon: Home, label: 'হোম', color: 'var(--brand-1)' },
+  { id: 'dashboard' as ActiveSection, icon: Home, label: 'হোম', color: '#FF5722' },
   { id: 'inventory' as ActiveSection, icon: Package, label: 'পণ্য', color: '#2196F3' },
-  { id: 'pos' as ActiveSection, icon: ScanLine, label: 'POS বিক্রয়', color: 'var(--success)' },
-  { id: 'dueledger' as ActiveSection, icon: BookOpen, label: 'বকেয়া', color: 'var(--brand-2)' },
-  { id: 'reports' as ActiveSection, icon: BarChart2, label: 'রিপোর্ট', color: 'var(--purple)' },
+  { id: 'pos' as ActiveSection, icon: ScanLine, label: 'POS বিক্রয়', color: '#00C853' },
+  { id: 'dueledger' as ActiveSection, icon: BookOpen, label: 'বকেয়া', color: '#FF9800' },
+  { id: 'reports' as ActiveSection, icon: BarChart2, label: 'রিপোর্ট', color: '#9C27B0' },
 ]
 
 const NAV_MORE = [
   { id: 'transactions' as ActiveSection, icon: ArrowLeftRight, label: 'লেনদেন', color: '#2196F3' },
-  { id: 'txhistory' as ActiveSection, icon: History, label: 'ইতিহাস', color: 'var(--purple)' },
+  { id: 'txhistory' as ActiveSection, icon: History, label: 'ইতিহাস', color: '#9C27B0' },
   { id: 'settings' as ActiveSection, icon: Settings, label: 'সেটিংস', color: '#607D8B' },
-  { id: 'security' as ActiveSection, icon: Shield, label: 'নিরাপত্তা', color: 'var(--success)' },
-  { id: 'directions' as ActiveSection, icon: HelpCircle, label: 'সাহায্য', color: 'var(--brand-2)' },
+  { id: 'security' as ActiveSection, icon: Shield, label: 'নিরাপত্তা', color: '#4CAF50' },
+  { id: 'directions' as ActiveSection, icon: HelpCircle, label: 'সাহায্য', color: '#FF9800' },
   { id: 'privacy' as ActiveSection, icon: Lock, label: 'গোপনীয়তা', color: '#607D8B' },
-  { id: 'disclaimer' as ActiveSection, icon: AlertTriangle, label: 'দাবিত্যাগ', color: 'var(--danger)' },
+  { id: 'disclaimer' as ActiveSection, icon: AlertTriangle, label: 'দাবিত্যাগ', color: '#F44336' },
   { id: 'terms' as ActiveSection, icon: FileText, label: 'শর্তাবলী', color: '#607D8B' },
 ]
 

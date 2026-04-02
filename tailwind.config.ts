@@ -4,21 +4,15 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Hind Siliguri', 'sans-serif'],
-        bn: ['Hind Siliguri', 'Plus Jakarta Sans', 'sans-serif'],
+        sans: ['Sora', 'Hind Siliguri', 'sans-serif'],
+        bn: ['Hind Siliguri', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
-        brand: {
-          1: '#FF4500',
-          2: '#FF7A00',
-          3: '#FFB347',
-        },
-        success: '#00D68F',
-        danger: '#FF3B5C',
-        warning: '#FFB800',
-      },
-    },
+        primary: '#FF5722',
+        accent: '#FF9800',
+      }
+    }
   },
   plugins: [],
 }

@@ -22,7 +22,7 @@ export default function SettingsSection() {
         {/* Theme */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottom: '1px solid var(--border)', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(255,152,0,0.1)', color: 'var(--brand-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(255,152,0,0.1)', color: '#FF9800', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
             </div>
             <div>

@@ -63,7 +63,7 @@ function QRSheet({ item, fmt, onClose }:{ item:InventoryItem; fmt:(v:number)=>st
           <div className="modal-handle"/>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <div style={{display:'flex',alignItems:'center',gap:7}}>
-              <QrCode size={16} color="var(--brand-1)"/>
+              <QrCode size={16} color="var(--primary)"/>
               <span className="modal-title">পণ্যের QR তথ্য</span>
             </div>
             <button onClick={onClose} style={{background:'none',border:'none',color:'var(--text3)',cursor:'pointer',padding:4}}><X size={18}/></button>
@@ -75,7 +75,7 @@ function QRSheet({ item, fmt, onClose }:{ item:InventoryItem; fmt:(v:number)=>st
           </div>
           <div style={{background:'var(--surface2)',borderRadius:12,padding:12,display:'flex',flexDirection:'column',gap:9,marginBottom:12}}>
             <div style={{display:'flex',gap:10,alignItems:'center'}}>
-              <div style={{width:40,height:40,borderRadius:10,background:'var(--brand-subtle)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',flexShrink:0}}>{CE[item.category]||'📦'}</div>
+              <div style={{width:40,height:40,borderRadius:10,background:'var(--primary-bg)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',flexShrink:0}}>{CE[item.category]||'📦'}</div>
               <div>
                 <div style={{fontWeight:700,fontSize:'0.9rem',color:'var(--text)',fontFamily:'var(--font-bn)'}}>{item.name}</div>
                 <div style={{fontSize:'0.7rem',color:'var(--text3)',fontFamily:'var(--font-bn)'}}>📂 {item.category}</div>
@@ -86,10 +86,10 @@ function QRSheet({ item, fmt, onClose }:{ item:InventoryItem; fmt:(v:number)=>st
               <span style={{fontSize:'0.75rem',color:'var(--text2)',fontFamily:'var(--font-bn)'}}>💰 বিক্রয় মূল্য</span>
               <span style={{fontFamily:'var(--font-mono)',fontWeight:800,fontSize:'1rem',color:'var(--success)'}}>{fmt(item.sell_price)}</span>
             </div>
-            <div style={{display:'flex',alignItems:'flex-start',gap:9,background:'linear-gradient(135deg,var(--brand-subtle),rgba(255,152,0,0.07))',border:'1.5px solid var(--brand-glow)',borderRadius:10,padding:'10px 12px'}}>
-              <Package size={15} color="var(--brand-1)" style={{flexShrink:0,marginTop:2}}/>
+            <div style={{display:'flex',alignItems:'flex-start',gap:9,background:'linear-gradient(135deg,var(--primary-bg),rgba(255,152,0,0.07))',border:'1.5px solid var(--primary-glow)',borderRadius:10,padding:'10px 12px'}}>
+              <Package size={15} color="var(--primary)" style={{flexShrink:0,marginTop:2}}/>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:'0.75rem',fontWeight:700,color:'var(--brand-1)',fontFamily:'var(--font-bn)',marginBottom:3}}>ডিজিবই তালিকাভুক্ত পণ্য</div>
+                <div style={{fontSize:'0.75rem',fontWeight:700,color:'var(--primary)',fontFamily:'var(--font-bn)',marginBottom:3}}>ডিজিবই তালিকাভুক্ত পণ্য</div>
                 <div style={{fontSize:'0.65rem',color:'var(--text3)',fontFamily:'var(--font-bn)',marginBottom:3}}>Digiboi ডিজিটাল সিস্টেমে নিবন্ধিত</div>
                 <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--text2)',background:'var(--surface)',borderRadius:5,padding:'3px 7px',wordBreak:'break-all',userSelect:'all'}}>🔑 {item.product_link||item.id}</div>
               </div>
@@ -210,7 +210,7 @@ export default function InventorySection() {
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}} className="anim-fade-up">
         {[
           {label:'মোট পণ্য',value:stats.total,color:'var(--info)',bg:'var(--info-light)'},
-          {label:'স্টক মূল্য',value:fmt(stats.value),color:'var(--brand-1)',bg:'var(--brand-subtle)',mono:true},
+          {label:'স্টক মূল্য',value:fmt(stats.value),color:'var(--primary)',bg:'var(--primary-bg)',mono:true},
           {label:'সতর্কতা',value:stats.low,color:stats.low>0?'var(--danger)':'var(--success)',bg:stats.low>0?'var(--danger-light)':'var(--success-light)'},
         ].map((s,i)=>(
           <div key={i} style={{background:s.bg,borderRadius:12,padding:'10px 8px',textAlign:'center'}}>

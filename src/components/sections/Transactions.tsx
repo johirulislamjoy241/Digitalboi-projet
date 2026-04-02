@@ -159,7 +159,7 @@ export default function TransactionsSection() {
                 <div style={{
                   position: 'absolute', top: '100%', left: 0, right: 0,
                   background: 'var(--surface)', border: '1px solid var(--border)',
-                  borderRadius: 12, boxShadow: 'var(--sh-lg)', zIndex: 20,
+                  borderRadius: 12, boxShadow: 'var(--shadow-lg)', zIndex: 20,
                   maxHeight: 240, overflowY: 'auto', marginTop: 4
                 }}>
                   {filtered.length === 0 ? (
@@ -199,15 +199,15 @@ export default function TransactionsSection() {
 
         {/* Selected product info */}
         {sel && (
-          <div style={{ background: 'var(--brand-subtle)', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
+          <div style={{ background: 'var(--primary-bg)', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: 700, color: 'var(--brand-1)', fontFamily: 'var(--font-bn)', fontSize: '0.85rem' }}>{sel.name}</div>
+                <div style={{ fontWeight: 700, color: 'var(--primary)', fontFamily: 'var(--font-bn)', fontSize: '0.85rem' }}>{sel.name}</div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)', marginTop: 2 }}>
                   স্টক: <strong>{sel.quantity} {sel.unit}</strong> · ক্রয়: {fmt(sel.buy_price)} · বিক্রয়: {fmt(sel.sell_price)}
                 </div>
               </div>
-              <Package size={18} color="var(--brand-1)" />
+              <Package size={18} color="var(--primary)" />
             </div>
             {mode === 'out' && sel.quantity <= 5 && (
               <div style={{ fontSize: '0.68rem', color: 'var(--danger)', marginTop: 4, fontFamily: 'var(--font-bn)' }}>

@@ -60,7 +60,7 @@ function BuyerProfile({
             )}
             {buyer.address && (
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <MapPin size={13} color="var(--brand-1)" style={{ flexShrink: 0, marginTop: 2 }} />
+                <MapPin size={13} color="var(--primary)" style={{ flexShrink: 0, marginTop: 2 }} />
                 <span style={{ fontSize: '0.82rem', color: 'var(--text)', fontFamily: 'var(--font-bn)' }}>{buyer.address}</span>
               </div>
             )}
@@ -85,8 +85,8 @@ function BuyerProfile({
               <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '0.95rem', color: 'var(--success)' }}>{fmt(totalPaid)}</div>
               <div style={{ fontSize: '0.6rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)', marginTop: 2 }}>মোট পরিশোধ</div>
             </div>
-            <div style={{ background: 'var(--brand-subtle)', borderRadius: 12, padding: '10px 12px', textAlign: 'center' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '0.95rem', color: 'var(--brand-1)' }}>{fmt(totalAmt)}</div>
+            <div style={{ background: 'var(--primary-bg)', borderRadius: 12, padding: '10px 12px', textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '0.95rem', color: 'var(--primary)' }}>{fmt(totalAmt)}</div>
               <div style={{ fontSize: '0.6rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)', marginTop: 2 }}>মোট লেনদেন</div>
             </div>
             <div style={{ background: 'var(--surface2)', borderRadius: 12, padding: '10px 12px', textAlign: 'center' }}>
@@ -97,7 +97,7 @@ function BuyerProfile({
 
           {/* History */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-            <TrendingUp size={14} color="var(--brand-1)" />
+            <TrendingUp size={14} color="var(--primary)" />
             <span style={{ fontWeight: 700, fontSize: '0.88rem', fontFamily: 'var(--font-bn)', color: 'var(--text)' }}>লেনদেনের ইতিহাস</span>
             <span style={{ fontSize: '0.68rem', color: 'var(--text3)', fontFamily: 'var(--font-bn)' }}>({bd.length} টি)</span>
           </div>
@@ -366,7 +366,7 @@ export default function DueLedgerSection() {
                   <div className="list-title">{b.name}</div>
                   <div className="list-sub">{b.phone || 'ফোন নেই'}{b.address ? ' · ' + b.address : ''}</div>
                 </div>
-                <div style={{ fontSize: '0.62rem', color: 'var(--brand-1)', fontFamily: 'var(--font-bn)', flexShrink: 0 }}>প্রোফাইল →</div>
+                <div style={{ fontSize: '0.62rem', color: 'var(--primary)', fontFamily: 'var(--font-bn)', flexShrink: 0 }}>প্রোফাইল →</div>
               </div>
             ))
           )}
@@ -462,7 +462,7 @@ export default function DueLedgerSection() {
                   {showBDD && fBuyers.length > 0 && (
                     <>
                       <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setShowBDD(false)} />
-                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--sh-lg)', zIndex: 20, maxHeight: 170, overflowY: 'auto', marginTop: 4 }}>
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow-lg)', zIndex: 20, maxHeight: 170, overflowY: 'auto', marginTop: 4 }}>
                         {fBuyers.map(b => (
                           <button key={b.id} onClick={() => { setSelBuyer(b); setBuyerSearch(b.name); setShowBDD(false) }} style={{ width: '100%', padding: '10px 14px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', borderBottom: '1px solid var(--border)', fontSize: '0.82rem', fontFamily: 'var(--font-bn)', color: 'var(--text)' }}>
                             {b.name} {b.phone && <span style={{ color: 'var(--text3)' }}>· {b.phone}</span>}
@@ -485,7 +485,7 @@ export default function DueLedgerSection() {
                   {showPDD && fProds.length > 0 && (
                     <>
                       <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setShowPDD(false)} />
-                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--sh-lg)', zIndex: 20, maxHeight: 150, overflowY: 'auto', marginTop: 4 }}>
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow-lg)', zIndex: 20, maxHeight: 150, overflowY: 'auto', marginTop: 4 }}>
                         {fProds.map(p => (
                           <button key={p.id} onClick={() => { setSelProd(p); setProdSearch(p.name); setDuePrice(String(p.sell_price)); setDueUnit(p.unit); setShowPDD(false) }} style={{ width: '100%', padding: '10px 14px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', borderBottom: '1px solid var(--border)', fontSize: '0.82rem', fontFamily: 'var(--font-bn)', color: 'var(--text)' }}>
                             {p.name} <span style={{ color: 'var(--text3)' }}>· {fmt(p.sell_price)} · {p.quantity} {p.unit}</span>
@@ -521,7 +521,7 @@ export default function DueLedgerSection() {
                 <input className="input" placeholder="অতিরিক্ত তথ্য..." value={dueNotes} onChange={e => setDueNotes(e.target.value)} />
               </div>
               {dueQty && duePrice && calcTotal > 0 && (
-                <div style={{ background: 'var(--brand-subtle)', borderRadius: 10, padding: '11px 14px', marginTop: 12 }}>
+                <div style={{ background: 'var(--primary-bg)', borderRadius: 10, padding: '11px 14px', marginTop: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: '0.78rem', fontFamily: 'var(--font-bn)', color: 'var(--text2)' }}>মোট মূল্য</span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{fmt(calcTotal)}</span>
