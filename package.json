@@ -1,7 +1,7 @@
 {
   "name": "digiboi-nextjs",
   "version": "1.0.0",
-  "description": "Digiboi \u2014 Your Business Digital Assistant (Next.js + Supabase)",
+  "description": "Digiboi — Your Business Digital Assistant (Next.js + Supabase)",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -15,6 +15,7 @@
     "react-dom": "^18",
     "@supabase/supabase-js": "^2.43.4",
     "@supabase/ssr": "^0.3.0",
+    "bcryptjs": "^2.4.3",
     "recharts": "^2.12.7",
     "lucide-react": "^0.383.0",
     "date-fns": "^3.6.0",
@@ -27,6 +28,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/bcryptjs": "^2.4.6",
     "tailwindcss": "^3.4.1",
     "postcss": "^8",
     "autoprefixer": "^10.0.1",

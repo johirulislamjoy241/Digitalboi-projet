@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { AppProvider, useAppStore, type ActiveSection } from '@/lib/app-store'
-import { ToastProvider } from '@/lib/toast-context'
 import AuthScreen from '@/components/AuthScreen'
 import Topbar from '@/components/layout/Topbar'
 import Sidebar from '@/components/layout/Sidebar'
@@ -14,7 +13,10 @@ import TxHistorySection from '@/components/sections/TxHistory'
 import DueLedgerSection from '@/components/sections/DueLedger'
 import ReportsSection from '@/components/sections/Reports'
 import SettingsSection from '@/components/sections/Settings'
-import { SecuritySection, HelpSection, PrivacySection, DisclaimerSection, TermsSection } from '@/components/sections/StaticSections'
+import {
+  SecuritySection, HelpSection, PrivacySection,
+  DisclaimerSection, TermsSection,
+} from '@/components/sections/StaticSections'
 
 function AppShellInner() {
   const { activeSection } = useAppStore()
@@ -34,7 +36,7 @@ function AppShellInner() {
           style={{
             overflowY: isPOS ? 'hidden' : 'auto',
             padding: isPOS ? 0 : undefined,
-            height: isPOS ? 0 : undefined,  // flex child: fill remaining height
+            height: isPOS ? 0 : undefined,
             flex: isPOS ? '1 1 0%' : undefined,
             animation: 'fade-up 0.22s cubic-bezier(0.16,1,0.3,1) both',
           }}
@@ -60,17 +62,30 @@ function AppShellInner() {
 
 function AuthGate() {
   const { user, loading } = useAuth()
-  if (loading) return (
-    <div className="loader-screen">
-      <div className="loader-logo">📦</div>
-      <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-bn)' }}>Digiboi</div>
-      <div className="loader-bar"><div className="loader-bar-fill" /></div>
-    </div>
-  )
+
+  if (loading) {
+    return (
+      <div className="loader-screen">
+        <div className="loader-logo">📦</div>
+        <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-bn)' }}>
+          Digiboi
+        </div>
+        <div className="loader-bar">
+          <div className="loader-bar-fill" />
+        </div>
+      </div>
+    )
+  }
+
   if (!user) return <AuthScreen />
-  return <AppProvider key={user.id}><AppShellInner /></AppProvider>
+
+  return (
+    <AppProvider key={user.id}>
+      <AppShellInner />
+    </AppProvider>
+  )
 }
 
 export default function Home() {
-  return <ToastProvider><AuthGate /></ToastProvider>
+  return <AuthGate />
 }

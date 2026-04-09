@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
+import bcrypt from 'bcryptjs'
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +25,9 @@ export async function POST(req: NextRequest) {
     if (!data) {
       return NextResponse.json({ error: 'No account found for this phone number.' }, { status: 401 })
     }
-    if (data.password !== password) {
+
+    const passwordMatch = await bcrypt.compare(password, data.password)
+    if (!passwordMatch) {
       return NextResponse.json({ error: 'Incorrect password.' }, { status: 401 })
     }
 
@@ -33,7 +36,7 @@ export async function POST(req: NextRequest) {
       phone: data.phone,
       shop_name: data.shop_name,
       owner_name: data.owner_name,
-      created_at: data.created_at
+      created_at: data.created_at,
     }
     return NextResponse.json({ user })
   } catch (err) {

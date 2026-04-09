@@ -3,16 +3,28 @@ import { createServiceRoleClient } from '@/lib/supabase/server'
 
 function userId(req: NextRequest) { return req.headers.get('x-user-id') || '' }
 
+function calcStatus(qty: number, threshold: number): string {
+  if (qty <= 0) return 'Out of Stock'
+  if (qty <= threshold) return 'Low Stock'
+  return 'In Stock'
+}
+
 export async function GET(req: NextRequest) {
   const uid = userId(req)
   if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const url = new URL(req.url)
   const limit = parseInt(url.searchParams.get('limit') || '100')
   const offset = parseInt(url.searchParams.get('offset') || '0')
+
   const supabase = createServiceRoleClient()
   const { data, error, count } = await supabase
-    .from('transactions').select('*', { count: 'exact' })
-    .eq('user_id', uid).order('date', { ascending: false }).range(offset, offset + limit - 1)
+    .from('transactions')
+    .select('*', { count: 'exact' })
+    .eq('user_id', uid)
+    .order('date', { ascending: false })
+    .range(offset, offset + limit - 1)
+
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ data, count })
 }
@@ -20,19 +32,33 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const uid = userId(req)
   if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const body = await req.json()
-  const { product_id, product_name, txn_type, quantity, unit, buy_price, sell_price, notes, new_buy_price, new_sell_price } = body
 
-  if (!product_id || !product_name || !txn_type || !quantity)
+  const body = await req.json()
+  const {
+    product_id, product_name, txn_type, quantity, unit,
+    buy_price, sell_price, notes, new_buy_price, new_sell_price,
+    low_stock_threshold,
+  } = body
+
+  if (!product_id || !product_name || !txn_type || !quantity) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
 
   const supabase = createServiceRoleClient()
   const qty = Number(quantity)
+  const threshold = Number(low_stock_threshold) || 10
 
-  // Get current product
+  // Get current product — verify ownership
   const { data: product, error: pErr } = await supabase
-    .from('inventory').select('*').eq('id', product_id).eq('user_id', uid).single()
-  if (pErr || !product) return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    .from('inventory')
+    .select('*')
+    .eq('id', product_id)
+    .eq('user_id', uid)
+    .single()
+
+  if (pErr || !product) {
+    return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+  }
 
   const old_qty = Number(product.quantity)
   let new_qty = old_qty
@@ -45,7 +71,9 @@ export async function POST(req: NextRequest) {
     new_qty = old_qty + qty
     type = 'Stock In'
   } else if (txn_type === 'out') {
-    if (qty > old_qty) return NextResponse.json({ error: `Not enough stock. Available: ${old_qty}` }, { status: 400 })
+    if (qty > old_qty) {
+      return NextResponse.json({ error: `Not enough stock. Available: ${old_qty}` }, { status: 400 })
+    }
     new_qty = old_qty - qty
     profit_loss = (sp - bp) * qty
     type = profit_loss < 0 ? 'Loss' : 'Stock Out'
@@ -53,24 +81,35 @@ export async function POST(req: NextRequest) {
     type = 'Price Update'
   }
 
-  const threshold = 10
-  const newStatus = new_qty <= 0 ? 'Out of Stock' : new_qty <= threshold ? 'Low Stock' : 'In Stock'
+  const newStatus = calcStatus(new_qty, threshold)
 
-  // Update inventory
+  // Build update fields
   const updateFields: Record<string, unknown> = { quantity: new_qty, status: newStatus }
   if (txn_type === 'price' || (txn_type === 'in' && new_buy_price)) {
     if (new_buy_price) updateFields.buy_price = Number(new_buy_price)
     if (new_sell_price) updateFields.sell_price = Number(new_sell_price)
   }
 
-  const { error: updateErr } = await supabase.from('inventory').update(updateFields).eq('id', product_id)
+  // Update inventory
+  const { error: updateErr } = await supabase
+    .from('inventory')
+    .update(updateFields)
+    .eq('id', product_id)
+    .eq('user_id', uid)
+
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
   // Insert transaction log
-  const { data: txn, error: txnErr } = await supabase.from('transactions').insert({
-    user_id: uid, product_id, product_name, type, txn_type, quantity: qty, unit: unit || product.unit || 'pcs',
-    buy_price: bp, sell_price: sp, profit_loss, old_qty, new_qty, notes, date: new Date().toISOString()
-  }).select('*').single()
+  const { data: txn, error: txnErr } = await supabase
+    .from('transactions')
+    .insert({
+      user_id: uid, product_id, product_name, type, txn_type,
+      quantity: qty, unit: unit || product.unit || 'pcs',
+      buy_price: bp, sell_price: sp, profit_loss, old_qty, new_qty,
+      notes, date: new Date().toISOString(),
+    })
+    .select('*')
+    .single()
 
   if (txnErr) return NextResponse.json({ error: txnErr.message }, { status: 500 })
   return NextResponse.json({ data: txn, new_qty, profit_loss })
