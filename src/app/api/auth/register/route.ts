@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
-import bcrypt from 'bcryptjs'
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,7 +8,7 @@ export async function POST(req: NextRequest) {
       loginPhone, password, shopName, ownerName,
       shopType, country, stateDiv, city, address,
       shopPhone, shopEmail, ownerPhone, ownerEmail,
-      nid, dob, gender,
+      nid, dob, gender
     } = body
 
     if (!loginPhone || !password || !shopName || !ownerName) {
@@ -22,7 +21,7 @@ export async function POST(req: NextRequest) {
     const supabase = createServiceRoleClient()
     const fullPhone = loginPhone.replace(/\s+/g, '')
 
-    // Check duplicate phone
+    // Check duplicate phone — use maybeSingle() to avoid error when not found
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
@@ -30,13 +29,10 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: '⛔ This phone number is already registered. Please sign in.' },
-        { status: 409 }
-      )
+      return NextResponse.json({ error: '⛔ This phone number is already registered. Please sign in.' }, { status: 409 })
     }
 
-    // Check duplicate NID
+    // Check duplicate NID — use maybeSingle()
     if (nid) {
       const { data: existingNid } = await supabase
         .from('registrations')
@@ -45,37 +41,28 @@ export async function POST(req: NextRequest) {
         .maybeSingle()
 
       if (existingNid) {
-        return NextResponse.json(
-          { error: '⛔ This National ID is already registered.' },
-          { status: 409 }
-        )
+        return NextResponse.json({ error: '⛔ This National ID is already registered.' }, { status: 409 })
       }
     }
-
-    // Hash password with bcrypt (salt rounds = 12)
-    const hashedPassword = await bcrypt.hash(password, 12)
 
     // Create user
     const { data: newUser, error: userErr } = await supabase
       .from('users')
       .insert({
         phone: fullPhone,
-        password: hashedPassword,
+        password,
         shop_name: shopName,
-        owner_name: ownerName,
+        owner_name: ownerName
       })
       .select('id')
       .single()
 
     if (userErr || !newUser) {
       console.error('User insert error:', userErr)
-      return NextResponse.json(
-        { error: userErr?.message || 'Registration failed. Try again.' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: userErr?.message || 'Registration failed. Try again.' }, { status: 500 })
     }
 
-    // Create registration profile (non-blocking)
+    // Create registration profile (non-blocking — don't fail if this errors)
     await supabase.from('registrations').insert({
       user_id: newUser.id,
       shop_name: shopName,
@@ -92,7 +79,7 @@ export async function POST(req: NextRequest) {
       nid: nid || null,
       dob: dob || null,
       gender: gender || null,
-      login_phone: fullPhone,
+      login_phone: fullPhone
     })
 
     return NextResponse.json({ success: true, userId: newUser.id })
