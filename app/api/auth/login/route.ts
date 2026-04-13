@@ -2,6 +2,26 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import bcrypt from 'bcryptjs'
 
+async function makeToken(uid: string, phone: string, sn: string, on: string): Promise<string> {
+  const secret = process.env.JWT_SECRET || 'digiboi-dev-secret'
+  const exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+  const payloadB64 = btoa(JSON.stringify({ uid, phone, sn, on, exp }))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payloadB64))
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+
+  return `${payloadB64}.${sigB64}`
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { phone, password } = await req.json()
@@ -16,28 +36,30 @@ export async function POST(req: NextRequest) {
       .eq('phone', fullPhone)
       .maybeSingle()
 
-    if (error) { console.error('Login DB error:', error); return NextResponse.json({ error: 'Server error. Try again.' }, { status: 500 }) }
+    if (error) return NextResponse.json({ error: 'Server error. Try again.' }, { status: 500 })
     if (!data) return NextResponse.json({ error: 'No account found for this phone number.' }, { status: 401 })
 
-    // Support both legacy plain-text passwords and new bcrypt hashes
+    // bcrypt hash অথবা plain text উভয়ই support করে
     const isHashed = data.password.startsWith('$2')
-    let passwordMatch = false
+    let match = false
 
     if (isHashed) {
-      passwordMatch = await bcrypt.compare(password, data.password)
+      match = await bcrypt.compare(password, data.password)
     } else {
-      // Legacy plain-text — compare directly, then auto-migrate to bcrypt
-      passwordMatch = data.password === password
-      if (passwordMatch) {
-        const hashed = await bcrypt.hash(password, 12)
+      match = data.password === password
+      if (match) {
+        // auto-migrate plain text to bcrypt
+        const hashed = await bcrypt.hash(password, 10)
         await supabase.from('users').update({ password: hashed }).eq('id', data.id)
       }
     }
 
-    if (!passwordMatch) return NextResponse.json({ error: 'Incorrect password.' }, { status: 401 })
+    if (!match) return NextResponse.json({ error: 'Incorrect password.' }, { status: 401 })
 
+    const token = await makeToken(data.id, data.phone, data.shop_name, data.owner_name)
     const user = { id: data.id, phone: data.phone, shop_name: data.shop_name, owner_name: data.owner_name, created_at: data.created_at }
-    return NextResponse.json({ user })
+
+    return NextResponse.json({ user, token })
   } catch (err) {
     console.error('Login error:', err)
     return NextResponse.json({ error: 'Server error. Try again.' }, { status: 500 })

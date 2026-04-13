@@ -19,19 +19,20 @@ export interface RegisterData {
   loginPhone: string; password: string
 }
 
-const SESSION_KEY = 'digiboi_token'
+const SESSION_KEY = 'digiboi_session'
 
 const AuthContext = createContext<AuthState>({
   user: null, loading: true,
   login: async () => ({}), logout: async () => {}, register: async () => ({}),
 })
 
-function decodeTokenPayload(token: string): { sub: string; phone: string; shop_name: string; owner_name: string; exp: number } | null {
+function decodeSession(token: string): { uid: string; phone: string; sn: string; on: string; exp: number } | null {
   try {
-    const parts = token.split('.')
-    if (parts.length !== 3) return null
-    const payload = JSON.parse(Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8'))
-    return payload
+    const dotIndex = token.lastIndexOf('.')
+    if (dotIndex === -1) return null
+    const payloadB64 = token.slice(0, dotIndex)
+    const json = atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'))
+    return JSON.parse(json)
   } catch {
     return null
   }
@@ -45,9 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const token = localStorage.getItem(SESSION_KEY)
       if (token) {
-        const payload = decodeTokenPayload(token)
-        if (payload && payload.exp > Math.floor(Date.now() / 1000)) {
-          setUser({ id: payload.sub, phone: payload.phone, shop_name: payload.shop_name, owner_name: payload.owner_name, created_at: '' })
+        const p = decodeSession(token)
+        if (p && p.exp > Math.floor(Date.now() / 1000)) {
+          setUser({ id: p.uid, phone: p.phone, shop_name: p.sn, owner_name: p.on, created_at: '' })
         } else {
           localStorage.removeItem(SESSION_KEY)
         }
@@ -57,23 +58,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(async (phone: string, password: string) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, password }),
-    })
-    const data = await res.json()
-    if (!res.ok || data.error) return { error: data.error || 'Login failed' }
-
-    const tokenRes = await fetch('/api/auth/token', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: data.user.id }),
-    })
-    const tokenData = await tokenRes.json()
-    if (!tokenRes.ok || !tokenData.token) return { error: 'Session error. Try again.' }
-
-    localStorage.setItem(SESSION_KEY, tokenData.token)
-    setUser(data.user)
-    return {}
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) return { error: data.error || 'Login failed' }
+      localStorage.setItem(SESSION_KEY, data.token)
+      setUser(data.user)
+      return {}
+    } catch {
+      return { error: 'Network error. Check connection.' }
+    }
   }, [])
 
   const logout = useCallback(async () => {
@@ -81,14 +79,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
-  const register = useCallback(async (data: RegisterData) => {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-    const result = await res.json()
-    if (!res.ok || result.error) return { error: result.error || 'Registration failed' }
-    return login(data.loginPhone, data.password)
+  const register = useCallback(async (formData: RegisterData) => {
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      const result = await res.json()
+      if (!res.ok || result.error) return { error: result.error || 'Registration failed' }
+      return login(formData.loginPhone, formData.password)
+    } catch {
+      return { error: 'Network error. Check connection.' }
+    }
   }, [login])
 
   return (
