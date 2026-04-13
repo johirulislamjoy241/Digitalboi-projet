@@ -5,7 +5,7 @@
  */
 
 const ALG = 'HS256'
-const SECRET_ENV = process.env.JWT_SECRET || ''
+const SECRET_ENV = process.env.JWT_SECRET || 'digiboi-dev-secret-change-in-production'
 const EXPIRES_IN_SECONDS = 30 * 24 * 60 * 60 // 30 days
 
 async function getKey(secret: string): Promise<CryptoKey> {
@@ -19,7 +19,9 @@ async function getKey(secret: string): Promise<CryptoKey> {
   )
 }
 
-function b64url(buf: ArrayBuffer): string {
+// Fix: accept both ArrayBuffer and Uint8Array
+function b64url(input: ArrayBuffer | Uint8Array): string {
+  const buf = input instanceof Uint8Array ? input.buffer : input
   return Buffer.from(buf)
     .toString('base64')
     .replace(/\+/g, '-')
@@ -43,10 +45,12 @@ export interface JWTPayload {
 export async function signToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): Promise<string> {
   const key = await getKey(SECRET_ENV)
   const enc = new TextEncoder()
+
   const header = b64url(enc.encode(JSON.stringify({ alg: ALG, typ: 'JWT' })))
   const now = Math.floor(Date.now() / 1000)
   const claims: JWTPayload = { ...payload, iat: now, exp: now + EXPIRES_IN_SECONDS }
   const body = b64url(enc.encode(JSON.stringify(claims)))
+
   const sig = await crypto.subtle.sign('HMAC', key, enc.encode(`${header}.${body}`))
   return `${header}.${body}.${b64url(sig)}`
 }
@@ -59,7 +63,10 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
     const key = await getKey(SECRET_ENV)
     const enc = new TextEncoder()
     const valid = await crypto.subtle.verify(
-      'HMAC', key, fromB64url(sig), enc.encode(`${header}.${body}`)
+      'HMAC',
+      key,
+      fromB64url(sig),
+      enc.encode(`${header}.${body}`)
     )
     if (!valid) return null
     const payload: JWTPayload = JSON.parse(fromB64url(body).toString('utf-8'))
