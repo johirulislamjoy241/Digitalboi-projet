@@ -1,8 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { AppProvider, useAppStore, type ActiveSection } from '@/lib/app-store'
-import { ToastProvider } from '@/lib/toast-context'
+import { AppProvider, useAppStore } from '@/lib/app-store'
 import AuthScreen from '@/components/AuthScreen'
 import Topbar from '@/components/layout/Topbar'
 import Sidebar from '@/components/layout/Sidebar'
@@ -24,17 +23,15 @@ function AppShellInner() {
   return (
     <div className="app-root">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
       <div className="app-main">
         <Topbar onMenuOpen={() => setSidebarOpen(true)} />
-
         <main
           key={activeSection}
           className="app-content"
           style={{
             overflowY: isPOS ? 'hidden' : 'auto',
             padding: isPOS ? 0 : undefined,
-            height: isPOS ? 0 : undefined,  // flex child: fill remaining height
+            height: isPOS ? 0 : undefined,
             flex: isPOS ? '1 1 0%' : undefined,
             animation: 'fade-up 0.22s cubic-bezier(0.16,1,0.3,1) both',
           }}
@@ -68,9 +65,13 @@ function AuthGate() {
     </div>
   )
   if (!user) return <AuthScreen />
-  return <AppProvider key={user.id}><AppShellInner /></AppProvider>
+  return (
+    <AppProvider key={user.id}>
+      <AppShellInner />
+    </AppProvider>
+  )
 }
 
 export default function Home() {
-  return <ToastProvider><AuthGate /></ToastProvider>
+  return <AuthGate />
 }

@@ -11,71 +11,83 @@ interface AuthState {
 }
 
 export interface RegisterData {
-  // Step 1 — Business
   shopName: string; shopType: string; country: string
   stateDiv: string; city: string; address: string
   shopPhone: string; shopEmail: string
-  // Step 2 — Owner
   ownerName: string; ownerPhone: string; ownerEmail: string
   nid: string; dob: string; gender: string
-  // Step 3 — Credentials
   loginPhone: string; password: string
 }
 
+const SESSION_KEY = 'digiboi_token'
+
 const AuthContext = createContext<AuthState>({
   user: null, loading: true,
-  login: async () => ({}), logout: async () => {}, register: async () => ({})
+  login: async () => ({}), logout: async () => {}, register: async () => ({}),
 })
+
+function decodeTokenPayload(token: string): { sub: string; phone: string; shop_name: string; owner_name: string; exp: number } | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payload = JSON.parse(Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8'))
+    return payload
+  } catch {
+    return null
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Restore session from localStorage (30-day session)
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('digiboi_session')
-      if (raw) {
-        const sess = JSON.parse(atob(raw))
-        if (sess.exp > Date.now()) {
-          setUser({ id: sess.id, phone: sess.phone, shop_name: sess.sn, owner_name: sess.on, created_at: '' })
+      const token = localStorage.getItem(SESSION_KEY)
+      if (token) {
+        const payload = decodeTokenPayload(token)
+        if (payload && payload.exp > Math.floor(Date.now() / 1000)) {
+          setUser({ id: payload.sub, phone: payload.phone, shop_name: payload.shop_name, owner_name: payload.owner_name, created_at: '' })
         } else {
-          localStorage.removeItem('digiboi_session')
+          localStorage.removeItem(SESSION_KEY)
         }
       }
-    } catch {}
+    } catch { /* ignore */ }
     setLoading(false)
   }, [])
 
   const login = useCallback(async (phone: string, password: string) => {
     const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, password })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, password }),
     })
     const data = await res.json()
     if (!res.ok || data.error) return { error: data.error || 'Login failed' }
+
+    const tokenRes = await fetch('/api/auth/token', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: data.user.id }),
+    })
+    const tokenData = await tokenRes.json()
+    if (!tokenRes.ok || !tokenData.token) return { error: 'Session error. Try again.' }
+
+    localStorage.setItem(SESSION_KEY, tokenData.token)
     setUser(data.user)
-    // Save 30-day session
-    const sess = { id: data.user.id, phone: data.user.phone, sn: data.user.shop_name, on: data.user.owner_name, exp: Date.now() + 30*24*3600*1000 }
-    localStorage.setItem('digiboi_session', btoa(JSON.stringify(sess)))
     return {}
   }, [])
 
   const logout = useCallback(async () => {
-    localStorage.removeItem('digiboi_session')
+    localStorage.removeItem(SESSION_KEY)
     setUser(null)
   }, [])
 
   const register = useCallback(async (data: RegisterData) => {
     const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     })
     const result = await res.json()
     if (!res.ok || result.error) return { error: result.error || 'Registration failed' }
-    // Auto-login after register
     return login(data.loginPhone, data.password)
   }, [login])
 
@@ -87,3 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAuth() { return useContext(AuthContext) }
+
+export function getStoredToken(): string {
+  if (typeof window === 'undefined') return ''
+  return localStorage.getItem(SESSION_KEY) || ''
+}
